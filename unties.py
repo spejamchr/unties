@@ -84,9 +84,8 @@ class UnitsGroup :
         return a
 
     def __rsub__(self, num) :
-        pass
         # You can't subtract a unitless number and a unit number
-        # raise Exception('Cannot subtract dislike units')
+        raise Exception('Cannot subtract dislike units')
 
     def __neg__(self) :
         return self * -1
@@ -215,7 +214,7 @@ class Units :
             'lbf': 4.44822161526,   # Pound force
             'tonf': 8896.44323052,  # Ton force
 
-        }
+        },
         # Pressure
         Pa: {
             'atm': 101325,
