@@ -1,3 +1,11 @@
+# To import this file, do:
+#
+# import importlib.machinery
+# unties = importlib.machinery.SourceFileLoader(
+#     '_','/full/path/to/this/file/unties.py'
+# ).load_module()
+# _ = unties._
+
 from numbers import Number
 
 class Counter(dict) :
