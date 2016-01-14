@@ -184,7 +184,6 @@ class Units :
 
     #### Initialize Derived Units ####
     # Official SI derived units
-    L = m ** 3 / 1000   # Liter     (volume)
     N = kg * m / s**2   # Newton    (force)
     J = N * m           # Joule     (energy)
     Pa = N / m**2       # Pascal    (pressure)
@@ -232,11 +231,12 @@ class Units :
             'Ang': 10**-10,                 # Angstrom
             'au': 149597900000,             # Astronomical Unit
             'fath': 1.8288,                 # Fathom
-            'fm': 10**-15,                  # Fermi
-            'um': 10**-6,                   # Micron
+            'fm': 10**-15,                  # Femtometer/Fermi
+            'um': 10**-6,                   # Micron/Micrometer
             'nm': 10**-9,                   # Nanometer
             'mm': 0.001,                    # Millimeter
             'cm': 0.01,                     # Centimeter
+            'dm': 0.1,                      # Decimeter
             'km': 1000,                     # Kilometer
             'inch': 0.0254,                 # Inch
             'ft': 0.3048,                   # Foot
@@ -252,6 +252,26 @@ class Units :
         m**2: {
             'acre': 4046.8564224,   # Acre
             'ha': 10000,            # Acre
+        },
+        # Volume
+        m**3: {
+            'cup': 2.365882365*10**-4,      # Cup
+            'floz': 2.95735295625*10**-5,   # Fluid ounce
+            'flozUK': 2.84130625*1**-5,     # British fluid ounce
+            'gal': 0.003785411784,          # Gallon
+            'galUK': 0.00454609,            # British gallon
+            'l': 0.001,                     # Liter
+            'ml': 10**-6,                   # Milliliter
+            'pt': 4.73176473*10**-4,        # Pint
+            'qt': 9.46352946*10**-4,        # Quart
+            'tbsp': 1.47867647813*10**-5,   # Tablespoon
+            'tsp': 4.92892159375*10**-6,    # Teaspoon
+        },
+        # Velocity
+        m/s: {
+            'knot': 0.514444444444,         # Knot
+            'kph': 0.277777777778,          # Kilometers per hour
+            'mph': 0.44704,                 # Miles per hour
         },
         # Amount of Substance
         mol: {
@@ -277,10 +297,34 @@ class Units :
             'tonf': 8896.44323052,  # Ton force
 
         },
+        # Energy
+        J: {
+            'Btu': 1055.05585262,       # British thermal unit
+            'cal': 4.1868,              # Calorie
+            'erg': 10**-7,              # Erg
+            'eV': 1.60217733*10**-19,   # Electron volt
+            'ftlb': 1.35581794833,      # Foot-pound
+            'kcal': 4186.8,             # Kilocalorie
+            'kWh': 3600000,             # Kilowatt-hour
+            'latm': 101.325,            # Liter-atmosphere
+        },
+        # Power
+        W: {
+            'hp': 745.699871582,    # Horsepower
+            'kW': 1000,             # Kilowatt
+            'mW': 10**6,            # Megawatt
+            'gW': 10**9,            # Gigawatt (1.21 for time travel)
+        },
         # Pressure
         Pa: {
-            'atm': 101325,
-            'mmHg': 133.322387415,
+            'atm': 101325,          # Atmosphere
+            'bar': 100000,          # Bar
+            'inH2O': 249.08891,     # Inches of water
+            'inHg': 3386.38815789,  # Inches of mercury
+            'mmH2O': 9.80665,       # Millimeters of water
+            'mmHg': 133.322387415,  # Millimeters of mercury
+            'psi': 6894.75729317,   # Pounds-force per square inch
+            'Torr': 101325 / 760,   # Torr
         },
         # Time
         s: {
