@@ -102,24 +102,85 @@ class UnitsGroup :
         return self
 
     def __str__(self) :
+        return str(self.value) + ' * ' + str(self.units)
+
+    def old_str(self) :
         return str(self.value) + ' ' + str(self.units)
-        # return "*".join(str(unit) for unit in self.units)
 
     def copy(self) :
         return UnitsGroup(value=self.value, dictionary=self.units)
+
+    #### Conversion Method ####
+    #
+    # Takes: self <UnitsGroup>
+    #        units_group <UnitsGroup>
+    #
+    # Returns: <str>
+    #
+    # To convert to a new UnitGroup, we just divide our original by the new
+    # UnitGroup. Very simple. However, this returns just an float, *not* a new
+    # UnitGroup, sadly. We won't return the float
+    #
+    # Instead, we return a string of valid python code that, when evaluated,
+    # returns a UnitsGroup equivalent to <self>. This is nice, because we can
+    # either print the string and show the result, and someone seeing the result
+    # can copy/paste it into their own version of unties and us it.
+    #
+    # Examples:
+    #
+    ### Convert 'ft' to 'inch'
+    # _.ft.units_of(_.inch) #=> '12.000000000000002 * 0.0254 * _.m'
+    #
+    ### Convert 12.5 'ft' to 'inch'
+    # (11.5 * _.ft).units_of(_.inch) #=> '138.00000000000003 * 0.0254 * _.m'
+    # # As you can see, the decimals are not perfectly exact
+    #
+    ### Each unit_group has to have the same dimensions:
+    # (_.m**2).units_of(_.inch**3) #=> Exception: Dimensions must be equal
+    #
+    ### Multiple units have to be grouped:
+    # (_.inch*_.fur).units_of(_.m**2) #=> '5.1096672 * 1.0 * _.m^2'
+    # # or else:
+    # _.inch*_.fur.units_of(_.m**2) #=> Exception: Dimensions must be equal
+    # # This is because methods have higher priority than the <*> operator
+    #
+    ### Optionally takes a string representing the units of your units_group:
+    # _.ft(_.inch, '_.inch') #=> '12.000000000000002 * _.inch'
+    # # but this is easily misused:
+    # _.ft(_.inch, '_.ltyr') #=> '12.000000000000002 * _.ltyr'
+    #
+    def units_of(self, unit_group, string='') :
+        a = self / unit_group
+        if a.units.present() :
+            raise Exception('Dimensions must be equal')
+        if string :
+            return str(a) + string
+        return str(a) + str(unit_group)
+
+    #### Shorthand for the <units_of> method ####
+    # Simply call the units_group with a new units_group
+    # Examples:
+    #
+    ### Convert 'ft/s' to 'fur/fortnight'
+    # (ft/s)(fur/fortnight)
+    #
+    # Very simple. Maybe too simple.
+    #
+    def __call__(self, unit_group, string='') :
+        return self.units_of(unit_group, string)
 
 class Units :
     # I don't want to import math just for this...
     pi = 3.14159265358979323846264338327950288419716939937510
 
     #### Initialize Base Units ####
-    m = UnitsGroup(1, 'meter')      # meter for length
-    kg = UnitsGroup(1, 'kilogram')  # kilogram for mass
-    s = UnitsGroup(1, 'second')     # second for time
-    A = UnitsGroup(1, 'ampere')     # ampere for electric current
-    K = UnitsGroup(1, 'kelvin')     # kelvin for temperature
-    cd = UnitsGroup(1, 'candela')   # candela for luminous intensity
-    mol = UnitsGroup(1, 'mole')     # mole for the amount of substance
+    m   = UnitsGroup(1, '_.m')    # meter for length
+    kg  = UnitsGroup(1, '_.kg')   # kilogram for mass
+    s   = UnitsGroup(1, '_.s')    # second for time
+    A   = UnitsGroup(1, '_.A')    # ampere for electric current
+    K   = UnitsGroup(1, '_.K')    # kelvin for temperature
+    cd  = UnitsGroup(1, '_.cd')   # candela for luminous intensity
+    mol = UnitsGroup(1, '_.mol')  # mole for the amount of substance
 
     #### Initialize Derived Units ####
     # Official SI derived units
@@ -173,10 +234,11 @@ class Units :
             'fath': 1.8288,                 # Fathom
             'fm': 10**-15,                  # Fermi
             'um': 10**-6,                   # Micron
+            'nm': 10**-9,                   # Nanometer
             'mm': 0.001,                    # Millimeter
             'cm': 0.01,                     # Centimeter
             'km': 1000,                     # Kilometer
-            'in': 0.0254,                   # Inch
+            'inch': 0.0254,                 # Inch
             'ft': 0.3048,                   # Foot
             'yd': 0.9144,                   # Yard
             'mi': 1609.344,                 # Mile
