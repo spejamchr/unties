@@ -84,8 +84,9 @@ class UnitsGroup :
         return a
 
     def __rsub__(self, num) :
+        pass
         # You can't subtract a unitless number and a unit number
-        raise Exception('Cannot subtract dislike units')
+        # raise Exception('Cannot subtract dislike units')
 
     def __neg__(self) :
         return self * -1
@@ -109,7 +110,7 @@ class UnitsGroup :
         return UnitsGroup(value=self.value, dictionary=self.units)
 
 class Units :
-    # I don't want to import math...
+    # I don't want to import math just for this...
     pi = 3.14159265358979323846264338327950288419716939937510
 
     #### Initialize Base Units ####
@@ -122,6 +123,7 @@ class Units :
     mol = UnitsGroup(1, 'mole')     # mole for the amount of substance
 
     #### Initialize Derived Units ####
+    # Official SI derived units
     L = m ** 3 / 1000   # Liter     (volume)
     N = kg * m / s**2   # Newton    (force)
     J = N * m           # Joule     (energy)
@@ -142,10 +144,6 @@ class Units :
     # Measured Constants
     Rc = 8.3144598 * J / (mol * K)                      # Gas constant
     c = 299792458 * m / s                               # Speed of light
-    Cc = 8987551787.36 * kg * m**3 / (A**2 * s**4)      # Coulomb's constant
-    Cc = c**2 * 10**-7 * H / m
-
-
     g = 9.80665 * m / s**2                              # Acceleration of gravity
     Gc = 6.67408 * 10**-11 * N * m**2 / kg**2           # Gravitational constant
     h = 6.626070040 * 10**-34 * J * s                   # Planck's constant
@@ -156,26 +154,68 @@ class Units :
     q = 1.6021766208 * 10**-19 * C                      # Electron charge
 
     # Defined constants
+    Cc = c**2 * 10**-7 * H / m                          # Coulomb's constant
     hbar = h / (2 * pi)                                 # Reduced Planck's constant
-    u0 = 4 * pi * 10-7 * N / A**2                         # Vacuum permeability
+    u0 = 4 * pi * 10**-7 * N / A**2                     # Vacuum permeability
+    e0 = u0**-1 * c**-2                                 # Vacuum permittivity
     kb = Rc / Na                                        # Boltzmann's constant
+    sbc = pi**2 * kb**4 / (60 * hbar**3 * c**2)         # Stefan-Boltzmann constant
     ub = q * hbar / (2 * Me)                            # Bohr magneton
     Rb = 4 * pi * u0 * hbar**2 / (Me * q**2)            # Bohr radius
     Rdb = Me * q**4 / (8 * u0**2 * h**3 * c)            # Rydberg Constant
+    mfq = h / (2 * q)                                   # Magnetic flux quantum
 
     #### Initialize Conversion Units ####
     conversions = {
         # Length
         m: {
-            'mm': 0.001,
-            'cm': 0.01,
-            'km': 1000,
-            'in': 0.0254,
-            'ft': 0.3048,
-            'yd': 0.9144,
-            'mi': 1609.344,
-            'furlong': 201.168,
+            'Ang': 10**-10,                 # Angstrom
+            'au': 149597900000,             # Astronomical Unit
+            'fath': 1.8288,                 # Fathom
+            'fm': 10**-15,                  # Fermi
+            'um': 10**-6,                   # Micron
+            'mm': 0.001,                    # Millimeter
+            'cm': 0.01,                     # Centimeter
+            'km': 1000,                     # Kilometer
+            'in': 0.0254,                   # Inch
+            'ft': 0.3048,                   # Foot
+            'yd': 0.9144,                   # Yard
+            'mi': 1609.344,                 # Mile
+            'fur': 201.168,                 # Furlong
+            'ltyr': 9.46052840488*10**15,   # Lightyear
+            'Nmi': 1852,                    # Nautical Mile
+            'pc': 3.085678*10**16,          # Parsec
+            'rod': 5.0292,                  # Rod
         },
+        # Area
+        m**2: {
+            'acre': 4046.8564224,   # Acre
+            'ha': 10000,            # Acre
+        },
+        # Amount of Substance
+        mol: {
+            'kmol': 1000,   # Kilomol
+        },
+        # Mass
+        kg: {
+            'amu': 1.6605402*10**-27,   # Atomic mass unit
+            'gm': 0.001,                # Gram
+            'lb': 0.45359237,           # Pound mass
+            'mg': 10**-6,               # Milligram
+            'mton': 1000,               # Metric ton
+            'oz': 0.028349523125,       # Ounce
+            'slug': 14.5939029372,      # Slug
+            'ton': 907.18474,           # Ton
+            'tonUK': 1016.047,          # Long ton
+        },
+        # Force
+        N: {
+            'dyne': 10**-5,         # Dyne
+            'kgf': 80665,           # Kilogram force
+            'lbf': 4.44822161526,   # Pound force
+            'tonf': 8896.44323052,  # Ton force
+
+        }
         # Pressure
         Pa: {
             'atm': 101325,
