@@ -11,13 +11,13 @@ class Counter(dict) :
 
     def __str__(self) :
         strings = [str(x) + self.exp_str(x) for x in sorted(list(self))]
-        return '*'.join(strings)
+        return ' * '.join(strings)
 
     def exp_str(self, key) :
         if self[key] == 1 :
             return ''
         else :
-            return '^' + str(self[key])
+            return '**' + str(self[key])
 
     def present(self) :
         return self
@@ -95,6 +95,11 @@ class UnitsGroup :
             raise Exception('Must be unitless')
         return self.value
 
+    # If we use Python's __eq__ method, we won't be able to use UnitGroups as
+    # keys in our Counter class. So let's just do it this way.
+    def eq(self, units_group) :
+        return self.value == units_group.value and self.units == units_group.units
+
     def join(self, units_group) :
         self.value *= units_group.value
         for unit in list(units_group.units) :
@@ -102,7 +107,9 @@ class UnitsGroup :
         return self
 
     def __str__(self) :
-        return str(self.value) + ' * ' + str(self.units)
+        if self.units :
+            return str(self.value) + ' * ' + str(self.units)
+        return str(self.value)
 
     def old_str(self) :
         return str(self.value) + ' ' + str(self.units)
@@ -126,36 +133,60 @@ class UnitsGroup :
     # either print the string and show the result, and someone seeing the result
     # can copy/paste it into their own version of unties and us it.
     #
+    # TODO: Implement this method with some type of Converter class, that can
+    #       return a smarter object so that it can be multiplied by other units,
+    #       or be printed as a string.
+    #
     # Examples:
     #
     ### Convert 'ft' to 'inch'
-    # _.ft.units_of(_.inch) #=> '12.000000000000002 * 0.0254 * _.m'
+    #
+    # _.ft.units_of(_.inch)
+    # #=> '12.000000000000002 * (0.0254 * _.m)'
     #
     ### Convert 12.5 'ft' to 'inch'
-    # (11.5 * _.ft).units_of(_.inch) #=> '138.00000000000003 * 0.0254 * _.m'
-    # # As you can see, the decimals are not perfectly exact
     #
-    ### Each unit_group has to have the same dimensions:
-    # (_.m**2).units_of(_.inch**3) #=> Exception: Dimensions must be equal
+    # (11.5 * _.ft).units_of(_.inch)
+    # #=> '138.00000000000003 * (0.0254 * _.m)'
+    #
+    # # As you can see fro the examples, the decimals are not perfectly exact
+    #
+    ### Each unit_group does *not* have to have the same dimensions:
+    #
+    # (_.m/_.s).units_of(_.inch)
+    # #=> '39.37007874015748 * _.s**-1 * (0.0254 * _.m)'
+    #
+    # But this isn't always very useful:
+    #
+    # (_.m**2).units_of(_.inch**3)
+    # #=> '61023.74409473229 * _.m**-1 * (1.6387064e-05 * _.m**3)'
     #
     ### Multiple units have to be grouped:
-    # (_.inch*_.fur).units_of(_.m**2) #=> '5.1096672 * 1.0 * _.m^2'
+    #
+    # (_.inch*_.fur).units_of(_.m**2)
+    # #=> '5.1096672 * (1.0 * _.m**2)'
+    #
     # # or else:
-    # _.inch*_.fur.units_of(_.m**2) #=> Exception: Dimensions must be equal
+    # _.inch*_.fur.units_of(_.m**2)
+    # #=> Exception: AttributeError: 'str' object has no attribute 'copy'
+    #
     # # This is because methods have higher priority than the <*> operator
     #
     ### Optionally takes a string representing the units of your units_group:
-    # _.ft(_.inch, '_.inch') #=> '12.000000000000002 * _.inch'
+    #
+    # _.ft(_.inch, '_.inch')
+    # #=> '12.000000000000002 * (_.inch)'
+    #
     # # but this is easily misused:
-    # _.ft(_.inch, '_.ltyr') #=> '12.000000000000002 * _.ltyr'
+    #
+    # _.ft(_.inch, '_.ltyr')
+    # #=> '12.000000000000002 * (_.ltyr)'
     #
     def units_of(self, unit_group, string='') :
         a = self / unit_group
-        if a.units.present() :
-            raise Exception('Dimensions must be equal')
         if string :
-            return str(a) + string
-        return str(a) + str(unit_group)
+            return str(a) + ' * (' + string + ')'
+        return str(a) + ' * (' + str(unit_group) + ')'
 
     #### Shorthand for the <units_of> method ####
     # Simply call the units_group with a new units_group
