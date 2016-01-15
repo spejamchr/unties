@@ -31,16 +31,37 @@ class Counter(dict) :
         return self
 
 class UnitsGroup :
-    def __init__(self, value=1.0, units_keys=[], dictionary={}) :
-        self.value = float(value)
+    def __init__(self, name='', units_keys=[], dictionary={}) :
+        self.value = 1
         self.units = Counter()
         if isinstance(units_keys, str) :
             self.units[units_keys] = 1
         else :
             for key in units_keys :
                 self.units[key] = 1
+        if not self.units and name :
+            self.units[name] = 1
         for key in list(dictionary) :
             self.units[key] = dictionary[key]
+
+        self.full_name = Counter()
+        if name :
+            self.full_name[name] = 1
+        else :
+            for name in list(self.units) :
+                self.full_name[name] = self.units[name]
+
+    def set_full_name(self, full_name) :
+        self.full_name = Counter()
+        for name in list(full_name) :
+            self.full_name[name] = full_name[name]
+        return self
+
+    def rename(self, name) :
+        a = self.copy()
+        a.full_name = Counter()
+        a.full_name[name] = 1
+        return a
 
     def __truediv__(self, unit_group) :
         numer = self.copy()
@@ -68,6 +89,8 @@ class UnitsGroup :
         a = self.copy()
         for unit in list(a.units) :
             a.units[unit] *= num
+        for name in list(a.full_name) :
+            a.full_name[name] *= num
         a.value **= num
         return a
 
@@ -112,6 +135,8 @@ class UnitsGroup :
         self.value *= units_group.value
         for unit in list(units_group.units) :
             self.units[unit] += units_group.units[unit]
+        for name in list(units_group.full_name) :
+            self.full_name[name] += units_group.full_name[name]
         return self
 
     def __str__(self) :
@@ -120,7 +145,10 @@ class UnitsGroup :
         return str(self.value)
 
     def copy(self) :
-        return UnitsGroup(value=self.value, dictionary=self.units)
+        a = UnitsGroup(dictionary=self.units)
+        a.set_full_name(self.full_name)
+        a.value = self.value
+        return a
 
     #### Conversion Method ####
     #
@@ -187,11 +215,9 @@ class UnitsGroup :
     # _.ft(_.inch, '_.ltyr')
     # #=> '12.000000000000002 * (_.ltyr)'
     #
-    def units_of(self, unit_group, string='') :
+    def units_of(self, unit_group) :
         a = self / unit_group
-        if string :
-            return str(a) + ' * (' + string + ')'
-        return str(a) + ' * (' + str(unit_group) + ')'
+        return str(a) + ' * ' + str(unit_group.full_name)
 
     #### Shorthand for the <units_of> method ####
     # Simply call the units_group with a new units_group
@@ -204,38 +230,38 @@ class UnitsGroup :
     #
     # Very simple. Maybe too simple.
     #
-    def __call__(self, unit_group, string='') :
-        return self.units_of(unit_group, string)
+    def __call__(self, unit_group) :
+        return self.units_of(unit_group)
 
 class Units :
     # I don't want to import math just for this...
     pi = 3.14159265358979323846264338327950288419716939937510
 
     #### Initialize Base Units ####
-    m   = UnitsGroup(1, '_.m')    # meter for length
-    kg  = UnitsGroup(1, '_.kg')   # kilogram for mass
-    s   = UnitsGroup(1, '_.s')    # second for time
-    A   = UnitsGroup(1, '_.A')    # ampere for electric current
-    K   = UnitsGroup(1, '_.K')    # kelvin for temperature
-    cd  = UnitsGroup(1, '_.cd')   # candela for luminous intensity
-    mol = UnitsGroup(1, '_.mol')  # mole for the amount of substance
+    m   = UnitsGroup('m')    # meter for length
+    kg  = UnitsGroup('kg')   # kilogram for mass
+    s   = UnitsGroup('s')    # second for time
+    A   = UnitsGroup('A')    # ampere for electric current
+    K   = UnitsGroup('K')    # kelvin for temperature
+    cd  = UnitsGroup('cd')   # candela for luminous intensity
+    mol = UnitsGroup('mol')  # mole for the amount of substance
 
     #### Initialize Derived Units ####
     # Official SI derived units
-    N = kg * m / s**2   # Newton    (force)
-    J = N * m           # Joule     (energy)
-    Pa = N / m**2       # Pascal    (pressure)
-    Hz = s**-1          # Hertz     (frequency)
-    rad = m / m         # Radian    (angle)             [unitless]
-    W = J / s           # Watt      (power)
-    C = s * A           # Coulomb   (electric charge)
-    V = W / A           # Volt      (voltage)
-    F = C / V           # Farad     (capacitance)
-    ohm = V / A         # Ohm       (electrical resistance)
-    S = 1 / ohm         # Siemen    (electrical conductance)
-    Wb =  J / A         # Weber     (magnetic flux)
-    T = V * s / m**2    # Tesla     (magnetic field strength)
-    H = V * s / A       # Henry     (inductance)
+    N = (kg * m / s**2).rename('N') # Newton    (force)
+    J = (N * m).rename('J')         # Joule     (energy)
+    Pa = (N / m**2).rename('Pa')    # Pascal    (pressure)
+    Hz = (s**-1).rename('Hz')       # Hertz     (frequency)
+    rad = (m / m).rename('rad')     # Radian    (angle)             [unitless]
+    W = (J / s).rename('W')         # Watt      (power)
+    C = (s * A).rename('C')         # Coulomb   (electric charge)
+    V = (W / A).rename('V')         # Volt      (voltage)
+    F = (C / V).rename('F')         # Farad     (capacitance)
+    ohm = (V / A).rename('ohm')     # Ohm       (electrical resistance)
+    S = (1 / ohm).rename('S')       # Siemen    (electrical conductance)
+    Wb =  (J / A).rename('Wb')      # Weber     (magnetic flux)
+    T = (V * s / m**2).rename('T')  # Tesla     (magnetic field strength)
+    H = (V * s / A).rename('H')     # Henry     (inductance)
 
     #### Initialize Constants ####
     # Measured Constants
@@ -383,9 +409,9 @@ class Units :
         }
     }
 
-    for base_unit in conversions :
-        for unit in conversions[base_unit] :
-            locals()[unit] = base_unit * conversions[base_unit][unit]
+    for base in conversions :
+        for unit in conversions[base] :
+            locals()[unit] = (base * conversions[base][unit]).rename(unit)
 
     # print(__units)
 
@@ -401,7 +427,7 @@ class Units :
     # hand_feet_per_season = _('hand', 'foot', season= -1)
     #
     def __new__(cls, *units_keys, **dictionary):
-            return UnitsGroup(1, units_keys, dictionary)
+            return UnitsGroup(units_keys=units_keys, dictionary=dictionary)
 
 # Follow the calculator pattern of _.<unit>
 _ = Units
