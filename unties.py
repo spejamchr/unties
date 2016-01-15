@@ -119,9 +119,6 @@ class UnitsGroup :
             return str(self.value) + ' * ' + str(self.units)
         return str(self.value)
 
-    def old_str(self) :
-        return str(self.value) + ' ' + str(self.units)
-
     def copy(self) :
         return UnitsGroup(value=self.value, dictionary=self.units)
 
@@ -134,12 +131,12 @@ class UnitsGroup :
     #
     # To convert to a new UnitGroup, we just divide our original by the new
     # UnitGroup. Very simple. However, this returns just an float, *not* a new
-    # UnitGroup, sadly. We won't return the float
+    # UnitGroup, sadly. We won't return the float.
     #
     # Instead, we return a string of valid python code that, when evaluated,
     # returns a UnitsGroup equivalent to <self>. This is nice, because we can
     # either print the string and show the result, and someone seeing the result
-    # can copy/paste it into their own version of unties and us it.
+    # can copy/paste it into their own version of unties and use it.
     #
     # TODO: Implement this method with some type of Converter class, that can
     #       return a smarter object so that it can be multiplied by other units,
@@ -201,7 +198,9 @@ class UnitsGroup :
     # Examples:
     #
     ### Convert 'ft/s' to 'fur/fortnight'
-    # (ft/s)(fur/fortnight)
+    #
+    # (_.ft/_.s)(_.fur/_.fortnight)
+    #  #=> '1832.727272727273 * (0.00016630952380952381 * _.m * _.s**-1)'
     #
     # Very simple. Maybe too simple.
     #
