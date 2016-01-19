@@ -152,16 +152,6 @@ class UnitsGroup :
     #
     # # This is because methods have higher priority than the <*> operator
     #
-    ### Optionally takes a string representing the units of your units_group:
-    #
-    # _.ft(_.inch, '_.inch')
-    # #=> '12.000000000000002 * (_.inch)'
-    #
-    # # but this is easily misused:
-    #
-    # _.ft(_.inch, '_.ltyr')
-    # #=> '12.000000000000002 * (_.ltyr)'
-    #
     def units_of(self, unit_group) :
         a = self / unit_group
         return str(a) + ' * ' + str(unit_group.full_name)
