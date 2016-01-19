@@ -1,3 +1,6 @@
+# For information about this, see this tutorial:
+# https://python-packaging.readthedocs.org/en/latest/minimal.html
+
 from setuptools import setup
 
 setup(name='unties',
