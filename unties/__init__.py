@@ -6,9 +6,14 @@
 # ).load_module()
 # _ = unties._
 
+# import units
+import os
+
+units_file_path = os.path.dirname(__file__) + '/' + 'units' + '.py'
+
 import importlib.machinery
 units = importlib.machinery.SourceFileLoader(
-    '_', '/Users/spencer/Desktop/code/git/unties/units.py'
+    '_', units_file_path
 ).load_module()
 
 # Follow the calculator pattern of _.<unit>
