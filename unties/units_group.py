@@ -1,13 +1,5 @@
 from numbers import Number
-import os
-counter_file_path = os.path.dirname(__file__) + '/' + 'counter' + '.py'
-
-
-import importlib.machinery
-counter = importlib.machinery.SourceFileLoader(
-    '_', counter_file_path
-).load_module()
-Counter = counter.Counter
+from .counter import Counter
 
 class UnitsGroup :
     def __init__(self, name='', *units_keys, **dictionary) :

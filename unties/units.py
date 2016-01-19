@@ -1,11 +1,4 @@
-import os
-units_group_file_path = os.path.dirname(__file__) + '/' + 'units_group' + '.py'
-
-import importlib.machinery
-units_group = importlib.machinery.SourceFileLoader(
-    '_', units_group_file_path
-).load_module()
-UnitsGroup = units_group.UnitsGroup
+from .units_group import UnitsGroup
 
 class Units :
     # I don't want to import math just for this...

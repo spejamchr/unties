@@ -1,20 +1,4 @@
-# To import this file, do:
-#
-# import importlib.machinery
-# unties = importlib.machinery.SourceFileLoader(
-#     '_','/full/path/to/this/file/unties.py'
-# ).load_module()
-# _ = unties._
-
-# import units
-import os
-
-units_file_path = os.path.dirname(__file__) + '/' + 'units' + '.py'
-
-import importlib.machinery
-units = importlib.machinery.SourceFileLoader(
-    '_', units_file_path
-).load_module()
+from .units import Units
 
 # Follow the calculator pattern of _.<unit>
 _ = units.Units
