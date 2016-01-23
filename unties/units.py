@@ -47,7 +47,7 @@ class Units :
     Cc = (c**2 * 10**-7 * H / m)                  (m/F) # Coulomb's constant
     hbar = h / (2 * pi)                                 # Reduced Planck's constant
     u0 = 4 * pi * 10**-7 * N / A**2                     # Vacuum permeability
-    e0 = u0**-1 * c**-2                           (F/m) # Vacuum permittivity
+    e0 = (u0**-1 * c**-2)                         (F/m) # Vacuum permittivity
     kb = Rc / Na                                        # Boltzmann's constant
     sbc = pi**2 * kb**4 / (60 * hbar**3 * c**2)         # Stefan-Boltzmann constant
     ub = q * hbar / (2 * Me)                      (J/T) # Bohr magneton
