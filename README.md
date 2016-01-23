@@ -63,20 +63,14 @@ Each unit_group does *not* have to have the same dimensions:
     >>> _.hp(_.cal)
     178.1073544430114 * cal * s**-1
 
-But this isn't always very useful:
-
-    >>> (_.m**2)(_.inch**3)
-    61023.74409473229 * inch**3 * m**-1
-
-    >>> _.hp(_.Pa)
-    745.699871582 * Pa * m**3 * s**-1
+But this isn't always very useful, so use it responsibly
 
 Multiple units should be grouped:
 
     >>> (_.inch*_.fur)(_.m**2)
     5.1096672 * m**2
 
-or else:
+or else strange things happen:
 
     >>> _.inch*_.fur(_.m**2)
     201.16799999999998 * inch * m
