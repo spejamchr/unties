@@ -44,16 +44,16 @@ class Units :
     q = 1.6021766208 * 10**-19 * C                      # Electron charge
 
     # Defined constants
-    Cc = c**2 * 10**-7 * H / m                          # Coulomb's constant
+    Cc = (c**2 * 10**-7 * H / m)                  (m/F) # Coulomb's constant
     hbar = h / (2 * pi)                                 # Reduced Planck's constant
     u0 = 4 * pi * 10**-7 * N / A**2                     # Vacuum permeability
-    e0 = u0**-1 * c**-2                                 # Vacuum permittivity
+    e0 = u0**-1 * c**-2                           (F/m) # Vacuum permittivity
     kb = Rc / Na                                        # Boltzmann's constant
     sbc = pi**2 * kb**4 / (60 * hbar**3 * c**2)         # Stefan-Boltzmann constant
-    ub = q * hbar / (2 * Me)                            # Bohr magneton
-    Rb = 4 * pi * u0 * hbar**2 / (Me * q**2)            # Bohr radius
-    Rdb = Me * q**4 / (8 * u0**2 * h**3 * c)            # Rydberg Constant
-    mfq = h / (2 * q)                                   # Magnetic flux quantum
+    ub = q * hbar / (2 * Me)                      (J/T) # Bohr magneton
+    Rb = (4 * pi * e0 * hbar**2 / (Me * q**2))      (m) # Bohr radius
+    Rdb = (Me * q**4 / (8 * e0**2 * h**3 * c))    (1/m) # Rydberg Constant
+    mfq = (h / (2 * q))                            (Wb) # Magnetic flux quantum
 
     #### Initialize Conversion Units ####
     conversions = [

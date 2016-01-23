@@ -45,6 +45,14 @@ class UnitsGroup :
             a.value *= unit_group
             return a
         b = unit_group.copy()
+        if a.units == b.units :
+            return a.join(b).standardized()(a**2)
+        if a.units == (1/b).units :
+            return a.join(b).standardized()
+        if a.units == (1/b**2).units :
+            return a.join(b)(a**0.5)
+        if a.units == (1/b**0.5).units :
+            return a.join(b).standardized()(1/a)
         return a.join(b)
     __rmul__ = __mul__
 
@@ -82,13 +90,14 @@ class UnitsGroup :
         return a.value == b.value and a.units == b.units
 
     def join(self, units_group) :
-        self.value *= units_group.value
-        self.normal *= units_group.normal
+        a = self.copy()
+        a.value *= units_group.value
+        a.normal *= units_group.normal
         for unit in list(units_group.units) :
-            self.units[unit] += units_group.units[unit]
+            a.units[unit] += units_group.units[unit]
         for name in list(units_group.full_name) :
-            self.full_name[name] += units_group.full_name[name]
-        return self
+            a.full_name[name] += units_group.full_name[name]
+        return a
 
     def __str__(self) :
         if self.units :
