@@ -36,33 +36,47 @@ And you instantly have access to a ton of units and constants
 
 Convert 'ft' to 'inch'
 
-    _.ft.units_of(_.inch)
-    #=> '12.000000000000002 * (0.0254 * _.m)'
+    >>> _.ft.units_of(_.inch)
+    12.000000000000002 * inch
 
-Convert 12.5 'ft' to 'inch'
+Convert 11.5 'ft' to 'inch'
 
-    (11.5 * _.ft).units_of(_.inch)
-    #=> '138.00000000000003 * (0.0254 * _.m)'
+    >>> 11.5 * _.ft.units_of(_.inch)
+    138.00000000000003 * inch
 
 As you can see fro the examples, the decimals are not perfectly exact
 
+You can call units with another unit as the argument as shorthand for
+conversion. So you can do:
+
+    >>> _.ft(_.inch)
+    12.000000000000002 * inch
+
+    >>> 11.5*_.ft(_.inch)
+    138.00000000000003 * inch
+
 Each unit_group does *not* have to have the same dimensions:
 
-    (_.m/_.s).units_of(_.inch)
-    #=> '39.37007874015748 * _.s**-1 * (0.0254 * _.m)'
+    >>> (_.m/_.s)(_.inch)
+    39.37007874015748 * inch * s**-1
+
+    >>> _.hp(_.cal)
+    178.1073544430114 * cal * s**-1
 
 But this isn't always very useful:
 
-    (_.m**2).units_of(_.inch**3)
-    #=> '61023.74409473229 * _.m**-1 * (1.6387064e-05 * _.m**3)'
+    >>> (_.m**2)(_.inch**3)
+    61023.74409473229 * inch**3 * m**-1
 
-Multiple units have to be grouped:
+    >>> _.hp(_.Pa)
+    745.699871582 * Pa * m**3 * s**-1
 
-    (_.inch*_.fur).units_of(_.m**2)
-    #=> '5.1096672 * (1.0 * _.m**2)'
+Multiple units should be grouped:
+
+    >>> (_.inch*_.fur)(_.m**2)
+    5.1096672 * m**2
 
 or else:
-    _.inch*_.fur.units_of(_.m**2)
-    #=> Exception: AttributeError: 'str' object has no attribute 'copy'
 
-This is because methods have higher priority than the <*> operator
+    >>> _.inch*_.fur(_.m**2)
+    201.16799999999998 * inch * m

@@ -4,6 +4,7 @@ from .counter import Counter
 class UnitsGroup :
     def __init__(self, name='', *units_keys, **dictionary) :
         self.value = 1
+        self.normal = 1
         self.units = Counter()
         for key in units_keys :
             self.units[key] = 1
@@ -29,6 +30,7 @@ class UnitsGroup :
         a = self.copy()
         a.full_name = Counter()
         a.full_name[name] = 1
+        a.normal = self.value**-1
         return a
 
     def __truediv__(self, unit_group) :
@@ -53,13 +55,14 @@ class UnitsGroup :
         for name in list(a.full_name) :
             a.full_name[name] *= num
         a.value **= num
+        a.normal **= num
         return a
 
     def __add__(self, unit_group) :
         if self.units != unit_group.units :
             raise Exception('Incompatible units')
-        a, b = self.copy(), unit_group.copy()
-        a.value += b.value
+        a = self.copy()
+        a.value += unit_group.value
         return a
 
     def __sub__(self, unit_group) :
@@ -73,13 +76,14 @@ class UnitsGroup :
             raise Exception('Must be unitless')
         return self.value
 
-    # If we use Python's __eq__ method, we won't be able to use UnitGroups as
-    # keys in our Counter class. So let's just do it this way.
-    def eq(self, units_group) :
-        return self.value == units_group.value and self.units == units_group.units
+    def __eq__(self, units_group) :
+        a = self.standardized()
+        b = units_group.standardized()
+        return a.value == b.value and a.units == b.units
 
     def join(self, units_group) :
         self.value *= units_group.value
+        self.normal *= units_group.normal
         for unit in list(units_group.units) :
             self.units[unit] += units_group.units[unit]
         for name in list(units_group.full_name) :
@@ -88,84 +92,118 @@ class UnitsGroup :
 
     def __str__(self) :
         if self.units :
-            return str(self.value) + ' * ' + str(self.units)
+            return str(self.value * self.normal) + ' * ' + str(self.full_name)
+            # return str(self.value) + ' * ' + str(self.units)
         return str(self.value)
+    __repr__ = __str__
+
 
     def copy(self) :
+        """Return a copy of self."""
         a = UnitsGroup(**self.units)
         a.set_full_name(self.full_name)
         a.value = self.value
+        a.normal = self.normal
         return a
 
-    #### Conversion Method ####
-    #
-    # Takes: self <UnitsGroup>
-    #        units_group <UnitsGroup>
-    #
-    # Returns: <str>
-    #
-    # To convert to a new UnitGroup, we just divide our original by the new
-    # UnitGroup. Very simple. However, this returns just an float, *not* a new
-    # UnitGroup, sadly. We won't return the float.
-    #
-    # Instead, we return a string of valid python code that, when evaluated,
-    # returns a UnitsGroup equivalent to <self>. This is nice, because we can
-    # either print the string and show the result, and someone seeing the result
-    # can copy/paste it into their own version of unties and use it.
-    #
-    # TODO: Implement this method with some type of Converter class, that can
-    #       return a smarter object so that it can be multiplied by other units,
-    #       or be printed as a string.
-    #
-    # Examples:
-    #
-    ### Convert 'ft' to 'inch'
-    #
-    # _.ft.units_of(_.inch)
-    # #=> '12.000000000000002 * (0.0254 * _.m)'
-    #
-    ### Convert 12.5 'ft' to 'inch'
-    #
-    # (11.5 * _.ft).units_of(_.inch)
-    # #=> '138.00000000000003 * (0.0254 * _.m)'
-    #
-    # # As you can see fro the examples, the decimals are not perfectly exact
-    #
-    ### Each unit_group does *not* have to have the same dimensions:
-    #
-    # (_.m/_.s).units_of(_.inch)
-    # #=> '39.37007874015748 * _.s**-1 * (0.0254 * _.m)'
-    #
-    # But this isn't always very useful:
-    #
-    # (_.m**2).units_of(_.inch**3)
-    # #=> '61023.74409473229 * _.m**-1 * (1.6387064e-05 * _.m**3)'
-    #
-    ### Multiple units have to be grouped:
-    #
-    # (_.inch*_.fur).units_of(_.m**2)
-    # #=> '5.1096672 * (1.0 * _.m**2)'
-    #
-    # # or else:
-    # _.inch*_.fur.units_of(_.m**2)
-    # #=> Exception: AttributeError: 'str' object has no attribute 'copy'
-    #
-    # # This is because methods have higher priority than the <*> operator
-    #
-    def units_of(self, unit_group) :
-        a = self / unit_group
-        return str(a) + ' * ' + str(unit_group.full_name)
+    def standardized(self) :
+        """Return a copy of self converted to standard base units"""
+        a = self.copy()
+        a.normal = 1
+        a.set_full_name(a.units)
+        return a
 
-    #### Shorthand for the <units_of> method ####
-    # Simply call the units_group with a new units_group
-    # Examples:
-    #
-    ### Convert 'ft/s' to 'fur/fortnight'
-    #
-    # (_.ft/_.s)(_.fur/_.fortnight)
-    #  #=> '1832.727272727273 * (0.00016630952380952381 * _.m * _.s**-1)'
-    #
-    # Very simple. Maybe too simple.
-    #
+    def normalized(self) :
+        """Return a copy of self that is only 1 unit big.
+
+        Example:
+
+            >>> (32*_.min).normalized()
+            1.0 * min
+        """
+        a = self.copy()
+        a.value = 1/a.normal
+        return a
+
+    def units_of(self, unit_group) :
+        """Convert from one unit to another, returning a new units_group.
+
+        Takes: self        <UnitsGroup>
+               units_group <UnitsGroup>
+
+        Returns: <UnitsGroup>
+
+        Examples:
+
+        Convert 'ft' to 'inch'
+
+            >>> _.ft.units_of(_.inch)
+            12.000000000000002 * inch
+
+        Convert 11.5 'ft' to 'inch'
+
+            >>> 11.5 * _.ft.units_of(_.inch)
+            138.00000000000003 * inch
+
+        As you can see from the examples, the decimals are not perfectly exact
+
+        You can call units with another unit as the argument as shorthand for
+        conversion. So you can do:
+
+            >>> _.ft(_.inch)
+            12.000000000000002 * inch
+
+            >>> 11.5*_.ft(_.inch)
+            138.00000000000003 * inch
+
+        Each unit_group does *not* have to have the same dimensions:
+
+            >>> (_.m/_.s)(_.inch)
+            39.37007874015748 * inch * s**-1
+
+            >>> _.hp(_.cal)
+            178.1073544430114 * cal * s**-1
+
+        But this isn't always very useful:
+
+            >>> (_.m**2)(_.inch**3)
+            61023.74409473229 * inch**3 * m**-1
+
+            >>> _.hp(_.Pa)
+            745.699871582 * Pa * m**3 * s**-1
+
+        Multiple units should be grouped:
+
+            >>> (_.inch*_.fur)(_.m**2)
+            5.1096672 * m**2
+
+        or else:
+
+            >>> _.inch*_.fur(_.m**2)
+            201.16799999999998 * inch * m
+        """
+        a = self.copy().standardized()
+        b = unit_group.copy().normalized().standardized()
+        c = a/b
+
+        c.value /= c.normal
+        b = unit_group.copy()
+        b.value = 1/b.normal
+        c *= b
+        c.normal = unit_group.normal
+        return c
+
     def __call__(self, unit_group) :
+        """Shorthand for the <units_of> method.
+
+        Simply call the units_group with a new units_group
+        Examples:
+
+        Convert 'ft/s' to 'fur/fortnight'
+
+            >>> (_.ft/_.s)(_.fur/_.fortnight)
+            1832.7272727272723 * fortnight**-1 * fur
+
+        Very simple. Maybe too simple.
+        """
         return self.units_of(unit_group)
