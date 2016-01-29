@@ -1,6 +1,7 @@
 from .units_group import UnitsGroup
 
 class Units :
+    """Define all units and constants, and a shorthand for making new units"""
     # I don't want to import math just for this...
     pi = 3.14159265358979323846264338327950288419716939937510
 
@@ -201,6 +202,12 @@ class Units :
                 'kJ': 1000,     # Kilojoule
                 'mJ': 1000000,  # Megajoule
             }
+        ],
+        # Angle
+        [rad,
+            {
+                'deg': pi/180   # Degree
+            }
         ]
     ]
     for group in conversions :
@@ -209,16 +216,34 @@ class Units :
         for unit in units_dict :
             locals()[unit] = (base * units_dict[unit]).rename(unit)
 
-    #### Create a shorthand for creating new units ####
-    # Example:
-    # # Create a `hand` unit:
-    # hand = _('hand')
-    #
-    # # Create a `hand*foot` unit:
-    # hand_feet = _('hand', 'foot')
-    #
-    # # Create a `hand*foot/season` unit:
-    # hand_feet_per_season = _('hand', 'foot', season= -1)
-    #
-    def __new__(cls, name='', *units_keys, **dictionary):
-            return UnitsGroup(name=name, *units_keys, **dictionary)
+    def __new__(cls, name, value=1, units_group=UnitsGroup()):
+        """Shorthand for creating new units.
+
+        Examples:
+
+        Create a `foo` unit:
+
+            >>> foo = _('foo')
+            >>> foo
+            1 * foo
+            >>> foo(_.m)
+            1 * foo
+            >>> foo(_.mph)
+            2.236936292054402 * foo * m**-1 * mph * s
+
+        Create a `hand` unit:
+
+            >>> hand = _('hand', 4, _.inch)
+            >>> hand
+            1 * hand
+            >>> hand(_.inch)
+            4 * inch
+            >>> _.ft(hand)
+            3.0000000000000004 * hand
+        """
+        unit = (units_group * value).rename(name)
+        if not unit.units:
+            unit.units[name] = 1
+            unit.value = 1
+            unit.normal = 1
+        return unit

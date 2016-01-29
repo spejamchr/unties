@@ -33,18 +33,20 @@ class UnitsGroup :
         a.normal = self.value**-1
         return a
 
-    def __truediv__(self, unit_group) :
-        return self * unit_group**-1
+    def __truediv__(self, units_group) :
+        return self * units_group**-1
 
     def __rtruediv__(self, num) :
         return num * self**-1
 
-    def __mul__(self, unit_group) :
+    def __mul__(self, units_group) :
         a = self.copy()
-        if isinstance(unit_group, Number) :
-            a.value *= unit_group
+        if isinstance(units_group, Number) :
+            a.value *= units_group
             return a
-        b = unit_group.copy()
+        b = units_group.copy()
+        if not a.units and not b.units :
+            return a.join(b).standardized()
         if a.units == b.units :
             return a.join(b).standardized()(a**2)
         if a.units == (1/b).units :
@@ -66,15 +68,20 @@ class UnitsGroup :
         a.normal **= num
         return a
 
-    def __add__(self, unit_group) :
-        if self.units != unit_group.units :
-            raise Exception('Incompatible units')
+    def __add__(self, units_group) :
+        units_group = (units_group*UnitsGroup())
+        if self.units != units_group.units :
+            raise Exception('Incompatible units: ', self.units, ' and ', units_group.units)
         a = self.copy()
-        a.value += unit_group.value
+        a.value += units_group.value
         return a
+    __radd__ = __add__
 
-    def __sub__(self, unit_group) :
-        return -unit_group + self
+    def __sub__(self, units_group) :
+        return -units_group + self
+
+    def __rsub__(self, units_group) :
+        return -self + units_group
 
     def __neg__(self) :
         return self * -1
@@ -86,8 +93,33 @@ class UnitsGroup :
 
     def __eq__(self, units_group) :
         a = self.standardized()
-        b = units_group.standardized()
+        b = (units_group*UnitsGroup()).standardized()
         return a.value == b.value and a.units == b.units
+
+    def __gt__(self, units_group) :
+        a = self.standardized()
+        b = (units_group*UnitsGroup()).standardized()
+        return a.value > b.value
+
+    def __lt__(self, units_group) :
+        a = self.standardized()
+        b = (units_group*UnitsGroup()).standardized()
+        return a.value < b.value
+
+    def __ge__(self, units_group) :
+        a = self.standardized()
+        b = (units_group*UnitsGroup()).standardized()
+        return a.value >= b.value
+
+    def __le__(self, units_group) :
+        a = self.standardized()
+        b = (units_group*UnitsGroup()).standardized()
+        return a.value <= b.value
+
+    def __abs__(self) :
+        a = self.copy()
+        a.value = abs(a.value)
+        return a
 
     def join(self, units_group) :
         a = self.copy()
@@ -100,10 +132,10 @@ class UnitsGroup :
         return a
 
     def __str__(self) :
-        if self.units :
+        if self.full_name :
             return str(self.value * self.normal) + ' * ' + str(self.full_name)
             # return str(self.value) + ' * ' + str(self.units)
-        return str(self.value)
+        return str(self.value * self.normal)
     __repr__ = __str__
 
 
@@ -134,7 +166,7 @@ class UnitsGroup :
         a.value = 1/a.normal
         return a
 
-    def units_of(self, unit_group) :
+    def units_of(self, units_group) :
         """Convert from one unit to another, returning a new units_group.
 
         Takes: self        <UnitsGroup>
@@ -165,7 +197,7 @@ class UnitsGroup :
             >>> 11.5*_.ft(_.inch)
             138.00000000000003 * inch
 
-        Each unit_group does *not* have to have the same dimensions:
+        Each units_group does *not* have to have the same dimensions:
 
             >>> (_.m/_.s)(_.inch)
             39.37007874015748 * inch * s**-1
@@ -191,18 +223,22 @@ class UnitsGroup :
             >>> _.inch*_.fur(_.m**2)
             201.16799999999998 * inch * m
         """
+        if not self.units and not self.full_name :
+            return self
         a = self.copy().standardized()
-        b = unit_group.copy().normalized().standardized()
+        b = units_group.copy().normalized().standardized()
         c = a/b
 
         c.value /= c.normal
-        b = unit_group.copy()
+        b = units_group.copy()
         b.value = 1/b.normal
         c *= b
-        c.normal = unit_group.normal
+        c.normal = units_group.normal
+        if not c.units and not c.full_name and not b.units:
+            c.set_full_name(b.full_name)
         return c
 
-    def __call__(self, unit_group) :
+    def __call__(self, units_group) :
         """Shorthand for the <units_of> method.
 
         Simply call the units_group with a new units_group
@@ -215,4 +251,4 @@ class UnitsGroup :
 
         Very simple. Maybe too simple.
         """
-        return self.units_of(unit_group)
+        return self.units_of(units_group)

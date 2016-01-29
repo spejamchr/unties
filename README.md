@@ -55,7 +55,7 @@ conversion. So you can do:
     >>> 11.5*_.ft(_.inch)
     138.00000000000003 * inch
 
-Each unit_group does *not* have to have the same dimensions:
+Each units_group does *not* have to have the same dimensions:
 
     >>> (_.m/_.s)(_.inch)
     39.37007874015748 * inch * s**-1
