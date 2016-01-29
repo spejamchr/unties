@@ -1,5 +1,5 @@
 from unittest import TestCase
-
+import math
 from unties import _
 
 class TestUnties(TestCase):
@@ -41,6 +41,32 @@ class TestUnties(TestCase):
         self.assertTrue(_.m/_.inch == 1/(_.inch/_.m))
 
 
+    # Test Absolute Value
+    def test_abssolute_value_leaves_positive_positive(self):
+        self.assertTrue(abs(_.m) == _.m)
+
+    def test_abssolute_value_makes_negatives_positive(self):
+        self.assertTrue(abs(-_.m) == _.m)
+
+
+    # Test comparators
+    def test_one_meter_is_larger_than_one_foot(self):
+        self.assertTrue(_.m > _.ft)
+
+    def test_kph_is_less_than_mph(self):
+        self.assertTrue(_.kph < _.mph)
+
+    def test_ltet(self):
+        self.assertTrue(_.kmol <= _.kmol)
+        self.assertTrue(_.mol <= _.kmol)
+
+    def test_gtet(self):
+        self.assertTrue(_.kPa >= _.kPa)
+        self.assertTrue(_.kPa >= _.Pa)
+
+    def test_log_2_units_is_log_2(self):
+        self.assertEqual(math.log(2), math.log(2*_.atm/_.atm))
+
     # Test multiplication
     def test_m_times_m_equals_m_squared(self):
         self.assertTrue(_.m*_.m == _.m**2)
@@ -71,6 +97,11 @@ class TestUnties(TestCase):
     def test_converting_scalar_does_nothing(self):
         scalar = _.m/_.m
         self.assertTrue(scalar.value == scalar(_.inch).value)
+
+    def test_specific_conversion(self):
+        speed = (_.m/_.s)
+        self.assertTrue(str(speed(_.km/_.min)) == '0.06 * km * min**-1')
+        self.assertTrue(str((3*_.m/_.m)(_.A)) == '3.0')
 
 
     # Test custom units

@@ -31,6 +31,9 @@ class Units :
     T = (V * s / m**2).rename('T')  # Tesla     (magnetic field strength)
     H = (V * s / A).rename('H')     # Henry     (inductance)
 
+    # Unofficial Units
+    M = (1000*mol/m**3).rename('M') # Molar (concentration)
+
     #### Initialize Constants ####
     # Measured Constants
     Rc = 8.3144598 * J / (mol * K)                      # Gas constant
