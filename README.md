@@ -30,18 +30,18 @@ or
 To use, import the Units class. I like to shorthand it as `_`, after the style
 of TI calculators:
 
-    >>> from unties import Units as _
+    >>> import unties as _
+
+Or, especially if you're just playing in a python console, feel free to wildcard
+import everything:
+
+    >>> from unties import *
 
 And you instantly have access to a ton of units and constants
 
-Convert 'ft' to 'inch'
-
-    >>> _.ft.units_of(_.inch)
-    12.000000000000002 * inch
-
 Convert 11.5 'ft' to 'inch'
 
-    >>> 11.5 * _.ft.units_of(_.inch)
+    >>> 11.5 * ft.units_of(inch)
     138.00000000000003 * inch
 
 As you can see fro the examples, the decimals are not perfectly exact
@@ -49,28 +49,35 @@ As you can see fro the examples, the decimals are not perfectly exact
 You can call units with another unit as the argument as shorthand for
 conversion. So you can do:
 
-    >>> _.ft(_.inch)
-    12.000000000000002 * inch
-
-    >>> 11.5*_.ft(_.inch)
+    >>> 11.5 * ft(inch)
     138.00000000000003 * inch
 
-Each units_group does *not* have to have the same dimensions:
+Each units_group does *not* have to have the same dimensions; basic units will
+be used to make up the difference:
 
-    >>> (_.m/_.s)(_.inch)
-    39.37007874015748 * inch * s**-1
+    >>> (mph)(inch)
+    17.6 * inch / s
 
-    >>> _.hp(_.cal)
-    178.1073544430114 * cal * s**-1
+    >>> hp(cal)
+    178.1073544430114 * cal / s
+
+    >>> acre(ft)
+    43559.99999999999 * ft**2
 
 But this isn't always very useful, so use it responsibly
 
 Multiple units should be grouped:
 
-    >>> (_.inch*_.fur)(_.m**2)
-    5.1096672 * m**2
+    >>> (yd / hr)(mm / s)
+    0.254 * mm / s
 
 or else strange things happen:
 
-    >>> _.inch*_.fur(_.m**2)
-    201.16799999999998 * inch * m
+    >>> yd / hr(mm / s)
+    2.7777777777777776e-07 * m * yd / (mm * s)
+
+Please note, though, that conversion never changes the value of a measurement.
+In the previous example, `2.7777777777777776e-07 * m * yd / (mm * s) == yd / hr`
+
+To see a full list of units, use the `all_units()` method. To see all defined
+constants, use the `all_constants()` method. Or take a peek in the source.

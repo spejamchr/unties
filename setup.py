@@ -3,14 +3,20 @@
 
 from setuptools import setup
 
-def readme():
-    with open('README.md') as f:
+def text_of(file_name):
+    with open(file_name) as f:
         return f.read()
+
+def long_description():
+    readme = text_of('README.md')
+    license = text_of('LICENSE')
+    authors = text_of('AUTHORS')
+    return "\n\n".join([readme, license, authors])
 
 setup(name='unties',
       version='0.1.1',
       description='The unit handler',
-      long_description=readme(),
+      long_description=long_description(),
       url='https://bitbucket.org/spejamchr/unties',
       author='Spencer Christiansen',
       author_email='jc.spencer92@gmail.com',

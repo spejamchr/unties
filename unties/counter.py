@@ -1,25 +1,64 @@
+"""Storage logic for UnitsGroup#units and UnitsGroup#full_name attributes.
+"""
 from numbers import Number
 
-class Counter(dict) :
-    def __missing__(self, key) :
+def exp_str(dictionary, key):
+    """Return exponent string. An empty string if exponent is 1.
+    """
+    if dictionary[key] == 1:
+        return ''
+    else:
+        return '**' + str(dictionary[key])
+
+class Counter(dict):
+    """Custom dict implementation for use with UnitsGroup.
+    """
+    def __init__(self):
+        self.positives = {}
+        self.negatives = {}
+
+    def __missing__(self, key):
         return 0
 
-    def __setitem__(self,key,value) :
-        if not isinstance(value, Number) :
+    def __setitem__(self, key, value):
+        if not isinstance(value, Number):
             raise Exception('Must be a number')
-        super().__setitem__(key,value)
-        if self[key] == 0 :
+        super().__setitem__(key, value)
+        self.negatives.pop(key, None)
+        self.positives.pop(key, None)
+        if self[key] == 0:
             self.pop(key)
+        elif self[key] > 0:
+            self.positives[key] = self[key]
+        elif self[key] < 0:
+            self.negatives[key] = self[key] * -1
 
-    def __str__(self) :
-        strings = [str(x) + self.exp_str(x) for x in sorted(list(self))]
-        return ' * '.join(strings)
 
-    def exp_str(self, key) :
-        if self[key] == 1 :
+    def __str__(self):
+        return self.joining_symbol() + self.unit_name_string()
+
+    def joining_symbol(self):
+        """Return the symbol to join the unit_name to the numerical value (`*` or `/`).
+        """
+        if not self.negatives and not self.positives:
             return ''
-        else :
-            return '**' + str(self[key])
+        else:
+            return ' / ' if not self.positives else ' * '
 
-    def present(self) :
-        return self
+    def positive_string(self):
+        pos_strings = [str(key) + exp_str(self.positives, key) for key in sorted(self.positives)]
+        return ' * '.join(pos_strings)
+
+    def negative_string(self):
+        neg_strings = [str(key) + exp_str(self.negatives, key) for key in sorted(self.negatives)]
+        return ''.join(neg_strings) if len(neg_strings) <= 1 else '(' + ' * '.join(neg_strings) + ')'
+
+    def unit_name_string(self):
+        """Return textual, python-compatible, representation of the unit
+        """
+        name = self.positive_string()
+        if self.positives and self.negatives:
+            name += ' / '
+        if self.negatives:
+            name += self.negative_string()
+        return name
