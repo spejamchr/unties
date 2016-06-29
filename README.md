@@ -2,11 +2,15 @@
 
 To install, just:
 
-    >>> easy_install unties
+```bash
+$ easy_install unties
+```
 
 or
 
-    >>> pip install unties
+```bash
+$ pip install unties
+```
 
 ### What is this repository for? ###
 
@@ -21,63 +25,77 @@ or
 * No dependencies
 * To run tests: `python setup.py test`
 
-### Contribution guidelines ###
-
-* Contributions are welcome. Just make a pull request on bitbucket.
-
 ### Examples ###
 
 To use, import the Units class. I like to shorthand it as `_`, after the style
 of TI calculators:
 
-    >>> import unties as _
+```python
+>>> import unties as _
+```
 
 Or, especially if you're just playing in a python console, feel free to wildcard
 import everything:
 
-    >>> from unties import *
+```python
+>>> from unties import *
+```
 
 And you instantly have access to a ton of units and constants
 
 Convert 11.5 'ft' to 'inch'
 
-    >>> 11.5 * ft.units_of(inch)
-    138.00000000000003 * inch
+```python
+>>> 11.5 * ft.units_of(inch)
+138.00000000000003 * inch
+```
 
-As you can see fro the examples, the decimals are not perfectly exact
+As you can see from the examples, floating-point math is hard
 
 You can call units with another unit as the argument as shorthand for
 conversion. So you can do:
 
-    >>> 11.5 * ft(inch)
-    138.00000000000003 * inch
+```python
+>>> 11.5 * ft(inch)
+138.00000000000003 * inch
+```
 
 Each units_group does *not* have to have the same dimensions; basic units will
 be used to make up the difference:
 
-    >>> (mph)(inch)
-    17.6 * inch / s
+```python
+>>> mph(inch)
+17.6 * inch / s
 
-    >>> hp(cal)
-    178.1073544430114 * cal / s
+>>> hp(cal)
+178.1073544430114 * cal / s
 
-    >>> acre(ft)
-    43559.99999999999 * ft**2
+>>> acre(ft)
+43559.99999999999 * ft**2
+```
 
 But this isn't always very useful, so use it responsibly
 
 Multiple units should be grouped:
 
-    >>> (yd / hr)(mm / s)
-    0.254 * mm / s
+```python
+>>> (yd / hr)(mm / s)
+0.254 * mm / s
+```
 
 or else strange things happen:
 
-    >>> yd / hr(mm / s)
-    2.7777777777777776e-07 * m * yd / (mm * s)
+```python
+>>> yd / hr(mm / s)
+2.7777777777777776e-07 * m * yd / (mm * s)
+```
 
 Please note, though, that conversion never changes the value of a measurement.
 In the previous example, `2.7777777777777776e-07 * m * yd / (mm * s) == yd / hr`
 
 To see a full list of units, use the `all_units()` method. To see all defined
 constants, use the `all_constants()` method. Or take a peek in the source.
+
+### Contribution guidelines ###
+
+* Contributions are welcome. Just make a pull request on bitbucket.

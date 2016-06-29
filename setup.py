@@ -14,10 +14,10 @@ def long_description():
     return "\n\n".join([readme, license, authors])
 
 setup(name='unties',
-      version='0.1.1',
+      version='0.2.0',
       description='The unit handler',
       long_description=long_description(),
-      url='https://bitbucket.org/spejamchr/unties',
+      url='https://github.com/spejamchr/unties',
       author='Spencer Christiansen',
       author_email='jc.spencer92@gmail.com',
       license='MIT',
