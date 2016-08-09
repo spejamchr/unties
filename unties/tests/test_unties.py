@@ -207,7 +207,7 @@ class TestUnties(TestCase):
         self.assertEqual(scalar.value, scalar(inch).value)
 
     def test_specific_conversion(self):
-        self.assertEqual(str((m / s)(km / min)), '0.06 * km / min')
+        self.assertEqual(str((m / s)(km / minute)), '0.06 * km / minute')
         self.assertEqual(str((3 * m / m)(A)), '3.0')
         self.assertEqual(str((3 * ft / ft)(mmHg)), '3.0')
         self.assertEqual(str((3 * ft / s)(inch)), '36.00000000000001 * inch / s')

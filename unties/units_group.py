@@ -219,8 +219,8 @@ class UnitsGroup:
 
         Example:
 
-            >>> (32 * min).normalized()
-            1.0 * min
+            >>> (32 * minute).normalized()
+            1.0 * minute
         """
         first = self.copy()
         first.value = 1.0 / first.normal
