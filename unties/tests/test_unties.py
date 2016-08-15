@@ -9,9 +9,6 @@ class TestUnties(TestCase):
     def assert_display_with_units_of(self, units_group, units):
         self.assertEqual(str(units_group), str(units_group(units)))
 
-    def assert_display_equal(self, first_units_group, second_units_group):
-        self.assertEqual(str(first_units_group), str(second_units_group))
-
     # Test Addition
     def test_add_commutative_law(self):
         self.assertEqual(1 * m + 5 * m, 5 * m + 1 * m)
@@ -131,6 +128,15 @@ class TestUnties(TestCase):
     def test_np_exp_2_units_is_exp_2(self):
         self.assertEqual(np.exp(2), np.exp(2 * atm / atm))
 
+    def test_np_log10_2_units_is_log10_2(self):
+        self.assertEqual(np.log10(100), np.log10(100 * atm/atm))
+
+    def test_np_cos_2_units_is_cos_2(self):
+        self.assertEqual(np.cos(2), np.cos(2 * atm/atm))
+
+    def test_np_sin_2_units_is_sin_2(self):
+        self.assertEqual(np.sin(2), np.sin(2 * atm/atm))
+
     def test_inch_is_not_equal_to_ft(self):
         self.assertNotEqual(inch, ft)
 
@@ -142,11 +148,8 @@ class TestUnties(TestCase):
 
 
     # Test Smart Conversion
-    def test_rad_times_deg_is_deg_squared(self):
-        self.assert_display_with_units_of(rad * deg, deg**2)
-
     def test_ft_times_yd_is_yd_squared(self):
-        self.assert_display_with_units_of(ft * yd, yd**2)
+        self.assert_display_with_units_of(ft * yd, yd**2.0)
 
     def test_ft_divided_by_yd_is_unitless_one_third(self):
         self.assertEqual(ft / yd, 1 / 3)
@@ -155,13 +158,13 @@ class TestUnties(TestCase):
         self.assert_display_with_units_of(ft * acre, acre**1.5)
 
     def test_acre_times_ft_is_ft_cubed(self):
-        self.assert_display_with_units_of(acre * ft, ft**3)
+        self.assert_display_with_units_of(acre * ft, ft**3.0)
 
     def test_ft_times_gal_is_gal_to_the_four_thirds(self):
         self.assert_display_with_units_of(ft * gal, gal**(4 / 3))
 
     def test_gal_times_ft_is_ft_to_the_fourth(self):
-        self.assert_display_with_units_of(gal * ft, ft**4)
+        self.assert_display_with_units_of(gal * ft, ft**4.0)
 
     def test_acre_divided_by_ft_is_ft(self):
         self.assert_display_with_units_of(acre / ft, ft)
@@ -170,10 +173,10 @@ class TestUnties(TestCase):
         self.assert_display_with_units_of(ft / acre, 1 / ft)
 
     def test_gal_divided_by_ft_is_ft_squared(self):
-        self.assert_display_with_units_of(gal / ft, ft**2)
+        self.assert_display_with_units_of(gal / ft, ft**2.0)
 
     def test_cm_divided_by_gal_is_inverse_cm_squared(self):
-        self.assert_display_with_units_of(cm / gal, 1 / cm**2)
+        self.assert_display_with_units_of(cm / gal, 1 / cm**2.0)
 
 
     # Test Conversion
@@ -231,6 +234,14 @@ class TestUnties(TestCase):
         self.assertEqual(eval(str(inch*fur(ft**2))), inch*fur)
 
 
+    # Test value_in_units
+    def test_value_in_units(self):
+        self.assertEqual((2 * yr).value_in_units(), 2)
+        self.assertEqual((12 * ltyr).value_in_units(), 12)
+        self.assertEqual((62 * F).value_in_units(), 62)
+        self.assertEqual((62 * lb * ft * minute * deg / R).value_in_units(), 62)
+
+
     # Test string conversions
     def test_to_string(self):
         self.assertEqual(str(m), '1.0 * m')
@@ -265,17 +276,7 @@ class TestUnties(TestCase):
         self.assertEqual(a, b)
 
 
-    # Test np.arrays
-    def test_solve_np_array_with_unitify(self):
-        def other(x):
-            return x + 2.0 * mm
-        def solve(x):
-            return unitify(x * ft - m + other(x * ft)).value
-        try:
-            fsolve(solve, 3)
-        except:
-            self.fail("fsolve with units failed unexpectedly!")
-
+    # Test fsolve
     def test_solve_np_array_with_other_order(self):
         def other(x):
             return x + 2.0 * mm
@@ -296,3 +297,25 @@ class TestUnties(TestCase):
             self.fail("fsolve should have failed!")
         except:
             pass
+
+    def test_my_fsolve(self):
+        def other(x):
+            return x + 2.0 * mm
+        def solve(x):
+            return x - m + other(x)
+        try:
+            units_fsolve(solve, 3 * ft)
+        except:
+            self.fail("fsolve with units failed unexpectedly!")
+
+
+    # Test unitless stuff
+    def test_unitless(self):
+        def spring_force(x, k):
+            return x * k
+
+        with_units = spring_force(3 * mm, 2 * N/m)(lbf)
+        unitless_spring_force = unitless(lbf, (mm, N/m))(spring_force)
+        without_units = unitless_spring_force(3, 2)
+
+        self.assertEqual(without_units, with_units.value_in_units())

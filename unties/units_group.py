@@ -1,19 +1,16 @@
 """See the README for examples of how to use this module.
 """
-from math import isclose, exp, log, cos
-from numpy import ndarray
-from numbers import Number
+from math import isclose, exp, log, cos, sin
 from .counter import Counter
+
 
 class UnitsGroup:
     """The meat of unties. See the README for examples.
     """
-    def __init__(self, name='', *units_keys, **dictionary):
+    def __init__(self, name='', **dictionary):
         self.value = 1.0
         self.normal = 1.0
         self.units = Counter()
-        for key in units_keys:
-            self.units[key] = 1
         if not self.units and name:
             self.units[name] = 1
         for key in list(dictionary):
@@ -32,31 +29,22 @@ class UnitsGroup:
     def __rtruediv__(self, num):
         return num * self**-1
 
-    def __mul__(self, units_group):
-        first = self.copy()
-        if isinstance(units_group, (Number, ndarray)):
-            first.value *= units_group
+    def __mul__(self, sec):
+        if not isinstance(sec, UnitsGroup):  # Probably a Number or ndarray
+            first = self.copy()
+            first.value *= sec
             return first
 
-        second = units_group.copy()
-        if not first.units and not second.units:
-            return first.join(second)
+        if self.units and sec.units and set(self.units) == set(sec.units):
+            unit = list(self.units)[0]
+            exp = self.units[unit] / sec.units[unit]
+            if (sec.value != 0 or exp >= 0) and self.units == (sec**exp).units:
+                if exp < 0 and exp > -1:
+                    return self.join(sec)(1 / self)
+                else:
+                    return self.join(sec)(sec**(1 + exp))
 
-        exponents = [1/3, 1/2, 1, 2, 3, -3, -2, -1]
-        for exponent in exponents:
-            if  second == 0 and exponent < 0:
-                continue
-            if first.units == (second**exponent).units:
-                return first.join(second)(second**(1 + exponent))
-
-        exceptions = [-1/2, -1/3]
-        for exception in exceptions:
-            if  second == 0 and exception < 0:
-                continue
-            if first.units == (second**exception).units:
-                return first.join(second)(1 / first)
-
-        return first.join(second)
+        return self.join(sec)
     __rmul__ = __mul__
 
     def __pow__(self, num):
@@ -78,7 +66,8 @@ class UnitsGroup:
             raise TypeError('Exponent must be unitless')
 
     def __add__(self, units_group):
-        units_group = (units_group*UnitsGroup())
+        if not isinstance(units_group, UnitsGroup):
+            units_group = UnitsGroup() * units_group
         self.must_have_same_units_as(units_group)
         first = self.copy()
         first.value += units_group.value
@@ -100,12 +89,12 @@ class UnitsGroup:
             raise Exception(string)
         return self.value
 
-    def __eq__(self, units_group):
-        first = self.standardized()
-        second = (units_group * UnitsGroup()).standardized()
-        if first.value == 0 and second.value == 0:
-            return True
-        return isclose(first.value, second.value, rel_tol=1e-15) and first.units == second.units
+    def __eq__(self, other):
+        if not isinstance(other, UnitsGroup):
+            other = UnitsGroup() * other
+
+        return (self.units == other.units and
+                isclose(self.value, other.value, rel_tol=1e-15))
 
     def __ne__(self, units_group):
         return not self == units_group
@@ -129,10 +118,14 @@ class UnitsGroup:
 
     def __str__(self):
         if self.full_name:
-            return str(self.value * self.normal) + str(self.full_name)
-        return str(self.value * self.normal)
+            return str(self.value_in_units()) + str(self.full_name)
+        return str(self.value_in_units())
     __repr__ = __str__
 
+    def value_in_units(self):
+        return self.value * self.normal
+
+    # For numpy compatability
     def exp(self):
         return exp(self)
 
@@ -145,10 +138,13 @@ class UnitsGroup:
     def cos(self):
         return cos(self)
 
+    def sin(self):
+        return sin(self)
 
     def copy(self):
         """Return a copy of self.
         """
+        print("COPIED!!! :D")
         first = UnitsGroup(**self.units)
         first.set_full_name(self.full_name)
         try:
@@ -158,13 +154,14 @@ class UnitsGroup:
         first.normal = self.normal
         return first
 
-    def compare(self, units_group, comparator):
+    def compare(self, other, comparator):
         """Used to DRY the comparing code.
         """
-        first = self.standardized()
-        second = (units_group * UnitsGroup()).standardized()
-        first.must_have_same_units_as(second)
-        return comparator(first.value, second.value)
+        if not isinstance(other, UnitsGroup):
+            other = UnitsGroup() * other
+
+        self.must_have_same_units_as(other)
+        return comparator(self.value, other.value)
 
     def join(self, units_group):
         """Return a new units_group that is the product of the two given.
@@ -189,7 +186,7 @@ class UnitsGroup:
         return self
 
     def rename(self, name):
-        """Rename the units_group in-place.
+        """Create a renamed copy of the units_group.
 
         Useful for creating new units:
 
@@ -202,7 +199,7 @@ class UnitsGroup:
         return first
 
     def standardized(self):
-        """Return first copy of self converted to standard base units.
+        """Return a copy of self converted to standard base units.
 
         Example:
 
@@ -227,12 +224,12 @@ class UnitsGroup:
         return first
 
     def scalar(self):
-        """Return True if self is first simple scalar.
+        """Return True if self is a simple scalar (like m/m).
         """
         return not self.units and not self.full_name
 
-    def unitless(self):
-        """Return True if self is first unitless unit (like Radian).
+    def dimensionless(self):
+        """Return True if self is a dimensionless unit (like Radian).
         """
         return not self.units and self.full_name
 
@@ -240,7 +237,10 @@ class UnitsGroup:
         """Checks that two units_groups have the same units
         """
         if not self.units == units_group.units:
-            raise Exception('Incompatible units: ', self.units, ' and ', units_group.units)
+            raise Exception('Incompatible units: ',
+                            self.units,
+                            ' and ',
+                            units_group.units)
 
     def units_of(self, units_group):
         """Convert from one unit to another, returning first new units_group.
