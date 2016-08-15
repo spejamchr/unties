@@ -233,6 +233,13 @@ class TestUnties(TestCase):
     def test_strange_conversions_inch_fur_to_ft_square_bad_parentheses(self):
         self.assertEqual(eval(str(inch*fur(ft**2))), inch*fur)
 
+    def test_can_convert_to_units_of_other_measurement(self):
+        a = 2 * ft
+        b = 3 * m
+        self.assertEqual(str(a(b)), '0.6096 * m')
+        self.assertEqual(a, 2 * ft)
+        self.assertEqual(b, 3 * m)
+
 
     # Test value_in_units
     def test_value_in_units(self):
@@ -319,3 +326,31 @@ class TestUnties(TestCase):
         without_units = unitless_spring_force(3, 2)
 
         self.assertEqual(without_units, with_units.value_in_units())
+
+    # Test inplace methods
+    def test_inplace_mul(self):
+        a = cm.copy()
+        a._inplace_mul(2)
+        self.assertEqual(str(a), '2.0 * cm')
+        a._inplace_mul(m)
+        self.assertEqual(str(a), '0.02 * m**2.0')
+
+    def test_inplace_join(self):
+        a = cm.copy()
+        a._inplace_join(s)
+        self.assertEqual(str(a), '1.0 * cm * s')
+
+    def test_inplace_standardized(self):
+        a = Btu.copy()
+        a._inplace_standardized()
+        self.assertEqual(str(a), '1055.05585262 * kg * m**2 / s**2')
+
+    def test_inplace_normalized(self):
+        a = 212 * Btu
+        a._inplace_normalized()
+        self.assertEqual(str(a), '1.0 * Btu')
+
+    def test_inplace_units_of(self):
+        a = 212 * Btu
+        a._inplace_units_of(kJ)
+        self.assertEqual(str(a), '223.67184075544 * kJ')

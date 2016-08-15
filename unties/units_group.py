@@ -29,26 +29,30 @@ class UnitsGroup:
     def __rtruediv__(self, num):
         return num * self**-1
 
-    def __mul__(self, sec):
-        if not isinstance(sec, UnitsGroup):  # Probably a Number or ndarray
-            first = self.copy()
-            first.value *= sec
-            return first
+    def _inplace_mul(self, sec):
+        if not isinstance(sec, UnitsGroup):  # Probably a Number or numpy array
+            self.value *= sec
+            return self
 
         if self.units and sec.units and set(self.units) == set(sec.units):
             unit = list(self.units)[0]
             exp = self.units[unit] / sec.units[unit]
             if (sec.value != 0 or exp >= 0) and self.units == (sec**exp).units:
                 if exp < 0 and exp > -1:
-                    return self.join(sec)(1 / self)
+                    a = self.copy()
+                    return self._inplace_join(sec)._inplace_units_of(1 / a)
                 else:
-                    return self.join(sec)(sec**(1 + exp))
+                    self._inplace_join(sec)._inplace_units_of(sec**(1 + exp))
+                    return self
 
-        return self.join(sec)
+        return self._inplace_join(sec)
+
+    def __mul__(self, sec):
+        return self.copy()._inplace_mul(sec)
     __rmul__ = __mul__
 
     def __pow__(self, num):
-        if isinstance(num, UnitsGroup) and num.scalar():
+        if isinstance(num, UnitsGroup) and num.is_scalar():
             num = num.value
         first = self.copy()
         for unit in list(first.units):
@@ -60,7 +64,7 @@ class UnitsGroup:
         return first
 
     def __rpow__(self, num):
-        if self.scalar():
+        if self.is_scalar():
             return num ** self.value
         else:
             raise TypeError('Exponent must be unitless')
@@ -144,7 +148,6 @@ class UnitsGroup:
     def copy(self):
         """Return a copy of self.
         """
-        print("COPIED!!! :D")
         first = UnitsGroup(**self.units)
         first.set_full_name(self.full_name)
         try:
@@ -163,17 +166,19 @@ class UnitsGroup:
         self.must_have_same_units_as(other)
         return comparator(self.value, other.value)
 
+    def _inplace_join(self, units_group):
+        self.value *= units_group.value
+        self.normal *= units_group.normal
+        for unit in list(units_group.units):
+            self.units[unit] += units_group.units[unit]
+        for name in list(units_group.full_name):
+            self.full_name[name] += units_group.full_name[name]
+        return self
+
     def join(self, units_group):
         """Return a new units_group that is the product of the two given.
         """
-        first = self.copy()
-        first.value *= units_group.value
-        first.normal *= units_group.normal
-        for unit in list(units_group.units):
-            first.units[unit] += units_group.units[unit]
-        for name in list(units_group.full_name):
-            first.full_name[name] += units_group.full_name[name]
-        return first
+        return self.copy()._inplace_join(units_group)
 
     def set_full_name(self, full_name):
         """Manually set the full name of a units_group in-place.
@@ -198,6 +203,11 @@ class UnitsGroup:
         first.normal = self.value**-1
         return first
 
+    def _inplace_standardized(self):
+        self.normal = 1
+        self.set_full_name(self.units)
+        return self
+
     def standardized(self):
         """Return a copy of self converted to standard base units.
 
@@ -206,10 +216,11 @@ class UnitsGroup:
             >>> Btu.standardized()
             1055.05585262 * kg * m**2 / s**2
         """
-        first = self.copy()
-        first.normal = 1
-        first.set_full_name(first.units)
-        return first
+        return self.copy()._inplace_standardized()
+
+    def _inplace_normalized(self):
+        self.value = 1.0 / self.normal
+        return self
 
     def normalized(self):
         """Return copy of self that is only 1 unit big.
@@ -219,16 +230,14 @@ class UnitsGroup:
             >>> (32 * minute).normalized()
             1.0 * minute
         """
-        first = self.copy()
-        first.value = 1.0 / first.normal
-        return first
+        return self.copy()._inplace_normalized()
 
-    def scalar(self):
+    def is_scalar(self):
         """Return True if self is a simple scalar (like m/m).
         """
         return not self.units and not self.full_name
 
-    def dimensionless(self):
+    def is_dimensionless(self):
         """Return True if self is a dimensionless unit (like Radian).
         """
         return not self.units and self.full_name
@@ -242,6 +251,14 @@ class UnitsGroup:
                             ' and ',
                             units_group.units)
 
+    def _inplace_units_of(self, units_group):
+        self._inplace_standardized()
+        units_group = units_group.normalized()
+
+        self._inplace_mul((units_group**-1)._inplace_standardized())
+        self._inplace_mul(units_group)
+        return self
+
     def units_of(self, units_group):
         """Convert from one unit to another, returning first new units_group.
 
@@ -252,9 +269,7 @@ class UnitsGroup:
 
         See the README for examples.
         """
-        first = self.standardized()
-        second = units_group.normalized()
-        return first / second.standardized() * second
+        return self.copy()._inplace_units_of(units_group)
 
     def __call__(self, units_group):
         """Shorthand for the UnitsGroup#units_of() method.
