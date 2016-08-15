@@ -34,7 +34,7 @@ N = (kg * m / s**2).rename('N') # Newton    (force)
 J = (N * m).rename('J')         # Joule     (energy)
 Pa = (N / m**2).rename('Pa')    # Pascal    (pressure)
 Hz = (s**-1).rename('Hz')       # Hertz     (frequency)
-rad = (m / m).rename('rad')     # Radian    (angle)             [unitless]
+rad = (m / m).rename('rad')     # Radian    (angle)             [dimensionless]
 W = (J / s).rename('W')         # Watt      (power)
 C = (s * A).rename('C')         # Coulomb   (electric charge)
 V = (W / A).rename('V')         # Volt      (voltage)
@@ -372,11 +372,48 @@ def all_constants():
 # Delete temporary variables
 del conversions, unit_list, dimension, base, base_name, units_dict, unit, group
 
-from numpy import nditer
-def unitify(ndarray):
-    """Convert a numpy.ndarray of units into one unit with an array of values"""
-    a = ndarray.copy()
-    unit = a.flatten()[0].normalized()
-    for x in nditer(a, flags=['refs_ok'], op_flags=['readwrite']):
-        x[...] = x / unit
-    return unit * a.astype(float)
+
+def unitless(ret_units, arg_units):
+    """Wrap a function that takes and returns units as arguments
+
+    Ex: (stupid example, but it shows how to use this)
+
+        >>> def spring_force(x, k):
+        >>>     return x * k
+        >>>
+        >>> spring_force(3 * mm, 2 * N/m)(lbf)
+        0.0013488536585984146 * lbf
+        >>> unitless_spring_force = unitless(lbf, (mm, N/m))(spring_force)
+        >>> unitless_spring_force(3, 2)
+        0.0013488536585984146
+
+    """
+    if not isinstance(arg_units, tuple):
+        arg_units = (arg_units,)
+
+    def wrap_function(func):
+        def new_function(*unitless_args):
+            zipped = zip(arg_units, unitless_args)
+            new_args = [unit * arg for unit, arg in zipped]
+            return func(*new_args)(ret_units).value_in_units()
+        return new_function
+    return wrap_function
+
+
+def units_fsolve(func, guess):
+    """A wrapper method so fsolve can deal with units
+
+    Ex: For a spring with k = 3 N / m, find the distance where the spring
+    exerts a force of 2 N.
+
+        >>> def solve_F(x):
+        >>>     return x * 3 * N / m - 2 * N
+        >>>
+        >>> units_fsolve(solve_F, 4 * m)
+        0.6666666666666666 * N
+    """
+    from scipy.optimize import fsolve
+    ret_units = func(guess).normalized()
+    arg_units = guess.normalized()
+    unitless_func = unitless(ret_units, arg_units)(func)
+    return fsolve(unitless_func, guess.value)[0] * ret_units
