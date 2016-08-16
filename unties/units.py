@@ -12,7 +12,8 @@ Defined Methods:
     deg_f()             Convert a Fahrenheit temperature to Rankine
     all_units()         Display all units
     all_constants()     Display all constants
-    unitify()           Convert ndarray of units into unit with array of values
+    unitless()          Convert a unit-function to a non-unit function
+    units_fsolve()      A wrapper method so fsolve can deal with units
 """
 from .units_group import UnitsGroup
 
