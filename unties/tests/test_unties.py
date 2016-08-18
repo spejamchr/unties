@@ -8,7 +8,7 @@ from scipy.optimize import fsolve
 class TestUnties(TestCase):
 
     def assert_display_with_units_of(self, units_group, units):
-        self.assertEqual(str(units_group), str(units_group(units)))
+        self.assertEqual(units_group.full_name, units.full_name)
 
     # Test Addition
     def test_add_commutative_law(self):
@@ -208,12 +208,12 @@ class TestUnties(TestCase):
 
     def test_converting_scalar_does_nothing(self):
         scalar = m / m
-        self.assertEqual(scalar.value, scalar(inch).value)
+        self.assertEqual(scalar, scalar(inch))
 
     def test_specific_conversion(self):
         self.assertEqual(str((m / s)(km / minute)), '0.06 * km / minute')
         self.assertEqual(str((3 * m / m)(A)), '3.0')
-        self.assertEqual(str((3 * ft / ft)(mmHg)), '3.0')
+        self.assertEqual(str((3 * ft / ft)(mmHg)), '3.0000000000000004')
         self.assertEqual(str((3 * ft / s)(cm)), '91.44000000000001 * cm / s')
 
     def test_strange_conversions_hz_to_yr(self):
@@ -241,12 +241,12 @@ class TestUnties(TestCase):
         self.assertEqual(a, 2 * ft)
         self.assertEqual(b, 3 * m)
 
-    # Test value_in_units #
+    # Test magnitude #
     #######################
-    def test_value_in_units(self):
-        self.assertEqual((2 * yr).value_in_units(), 2)
-        self.assertEqual((12 * ltyr).value_in_units(), 12)
-        self.assertEqual((62 * F).value_in_units(), 62)
+    def test_magnitude(self):
+        self.assertEqual((2 * yr).magnitude, 2)
+        self.assertEqual((12 * ltyr).magnitude, 12)
+        self.assertEqual((62 * F).magnitude, 62)
 
     # Test string conversions #
     ###########################
@@ -366,7 +366,7 @@ class TestUnties(TestCase):
         unitless_spring_force = unitless(lbf, (mm, N/m))(spring_force)
         without_units = unitless_spring_force(3, 2)
 
-        self.assertEqual(without_units, with_units.value_in_units())
+        self.assertEqual(without_units, with_units.magnitude)
 
     # Test inplace methods #
     ########################
@@ -395,4 +395,4 @@ class TestUnties(TestCase):
     def test_inplace_units_of(self):
         a = 212 * Btu
         a._inplace_units_of(kJ)
-        self.assertEqual(str(a), '223.67184075544 * kJ')
+        self.assertEqual(str(a), '223.67184075543997 * kJ')

@@ -348,7 +348,7 @@ def unitless(ret_units, arg_units):
         def new_function(*unitless_args):
             zipped = zip(arg_units, unitless_args)
             new_args = [unit * arg for unit, arg in zipped]
-            return func(*new_args)(ret_units).value_in_units()
+            return func(*new_args)(ret_units).magnitude
         return new_function
     return wrap_function
 

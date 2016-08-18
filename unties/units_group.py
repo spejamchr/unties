@@ -5,11 +5,11 @@ from .counter import Counter
 
 
 class _Quantities(dict):
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, quantity_string):
         if key in self:
-            value = self[key] + "/" + value
+            quantity_string = self[key] + "/" + quantity_string
             del self[key]
-        super().__setitem__(key, value)
+        super().__setitem__(key, quantity_string)
 
 
 class UnitsGroup:
@@ -126,7 +126,7 @@ class UnitsGroup:
             units_group._save_unit(prefixed_symbol)
 
     def __init__(self, name='', description='', **dictionary):
-        self.value = 1.0
+        self.magnitude = 1.0
         self.normal = 1.0
         self.units = Counter()
         self.description = description
@@ -151,13 +151,14 @@ class UnitsGroup:
 
     def _inplace_mul(self, sec):
         if not isinstance(sec, UnitsGroup):  # Probably a Number or numpy array
-            self.value *= sec
+            self.magnitude *= sec
             return self
 
         if self.units and sec.units and set(self.units) == set(sec.units):
             unit = list(self.units)[0]
             exp = self.units[unit] / sec.units[unit]
-            if (sec.value != 0 or exp >= 0) and self.units == (sec**exp).units:
+            valid_exp = sec.magnitude != 0 or exp >= 0
+            if valid_exp and self.units == (sec**exp).units:
                 if exp < 0 and exp > -1:
                     a = self.copy()
                     return self._inplace_join(sec)._inplace_units_of(1 / a)
@@ -179,7 +180,7 @@ class UnitsGroup:
             first.units[unit] *= num
         for name in list(first.full_name):
             first.full_name[name] *= num
-        first.value **= num
+        first.magnitude **= num
         first.normal **= num
         return first
 
@@ -194,7 +195,7 @@ class UnitsGroup:
             units_group = UnitsGroup() * units_group
         self.must_have_same_units_as(units_group)
         first = self.copy()
-        first.value += units_group.value
+        first.magnitude += units_group.value * first.normal
         return first
     __radd__ = __add__
 
@@ -237,11 +238,11 @@ class UnitsGroup:
 
     def __abs__(self):
         first = self.copy()
-        first.value = abs(first.value)
+        first.magnitude = abs(first.magnitude)
         return first
 
     def __str__(self):
-        s = str(self.value_in_units())
+        s = str(self.magnitude)
         if self.full_name:
             s += str(self.full_name)
         if self.description:
@@ -251,8 +252,9 @@ class UnitsGroup:
         return s
     __repr__ = __str__
 
-    def value_in_units(self):
-        return self.value * self.normal
+    @property
+    def value(self):
+        return self.magnitude / self.normal
 
     def quantity(self):
         """Return the physical quantity measured by this units_group.
@@ -298,9 +300,9 @@ class UnitsGroup:
         first = UnitsGroup(**self.units)
         first.set_full_name(self.full_name)
         try:
-            first.value = self.value.copy()
+            first.magnitude = self.magnitude.copy()
         except:
-            first.value = self.value
+            first.magnitude = self.magnitude
         first.normal = self.normal
         return first
 
@@ -314,7 +316,7 @@ class UnitsGroup:
         return comparator(self.value, other.value)
 
     def _inplace_join(self, units_group):
-        self.value *= units_group.value
+        self.magnitude *= units_group.magnitude
         self.normal *= units_group.normal
         for unit in list(units_group.units):
             self.units[unit] += units_group.units[unit]
@@ -349,11 +351,13 @@ class UnitsGroup:
         self.description = description
         self.full_name = Counter()
         self.full_name[name] = 1
-        self.normal = self.value**-1
+        self.normal /= self.magnitude
+        self.magnitude = 1.0
         return self
 
     def _inplace_standardized(self):
-        self.normal = 1
+        self.magnitude = self.value
+        self.normal = 1.0
         self.set_full_name(self.units)
         return self
 
@@ -368,7 +372,7 @@ class UnitsGroup:
         return self.copy()._inplace_standardized()
 
     def _inplace_normalized(self):
-        self.value = 1.0 / self.normal
+        self.magnitude = 1.0
         return self
 
     def normalized(self):
