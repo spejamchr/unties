@@ -1,4 +1,4 @@
-# README #
+# README
 
 To install, just:
 
@@ -12,20 +12,18 @@ or
 $ pip install unties
 ```
 
-### What is this repository for? ###
+### What is this repository for?
 
 * Another units-handling package
-* Version 0.1
 
-
-### How do I get set up? ###
+### How do I get set up?
 
 * See install directions above
 * No configuration options
 * No dependencies
 * To run tests: `python setup.py test`
 
-### Examples ###
+### Examples
 
 To use, import the Units class. I like to shorthand it as `_`, after the style
 of TI calculators:
@@ -60,8 +58,9 @@ conversion. So you can do:
 138.00000000000003 * inch
 ```
 
-Each units_group does *not* have to have the same dimensions; basic units will
-be used to make up the difference:
+Conversion will *not* raise an error if the units groups have different
+dimensions; instead, basic units will be used to make up the difference, without
+affecting the value:
 
 ```python
 >>> mph(inch)
@@ -73,8 +72,6 @@ be used to make up the difference:
 >>> acre(ft)
 43559.99999999999 * ft**2
 ```
-
-But this isn't always very useful, so use it responsibly
 
 Multiple units should be grouped:
 
@@ -93,9 +90,24 @@ or else strange things happen:
 Please note, though, that conversion never changes the value of a measurement.
 In the previous example, `2.7777777777777776e-07 * m * yd / (mm * s) == yd / hr`
 
-To see a full list of units, use the `all_units()` method. To see all defined
-constants, use the `all_constants()` method. Or take a peek in the source.
+If you're ever unsure what a unit symbol represents, just type it into the
+console, and the unit's name and quantity will be shown:
 
-### Contribution guidelines ###
+```python
+>>> print(amu)
+1.0 * amu  # Atomic mass unit [mass]
+```
 
-* Contributions are welcome. Just make a pull request on bitbucket.
+If you've done some calculations and want to check what quantity your new unit
+group measures, use the `quantity()` method:
+
+```python
+>>> (3 * hp / mmHg).quantity()
+'volumetric flow'
+```
+
+### Contribution guidelines
+
+* Contributions are welcome. Just make a pull request.
+* Use [pep8](https://pypi.python.org/pypi/pep8) to lint your Python code.
+* Write new tests for any new features
