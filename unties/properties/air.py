@@ -7,7 +7,7 @@ To use, do:
 
     >>> from unties.properties import air
     >>> print(air.MW)
-    28.960000000000004 * gm / mol
+    28.96 * gm / mol
 
 Or, to get the unitless value, use an underline before the property name:
 

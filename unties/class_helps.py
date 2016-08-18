@@ -54,15 +54,15 @@ class Fluid:
 
     Examples:
 
-    >>> T = (80+273.15)*K
+    >>> T = deg_c(80)
     >>> P = 1013 * kPa
     >>> omega = 0.200164
-    >>> Tc = 425.12 *K
-    >>> Pc = 3796 *kPa
+    >>> Tc = 425.12 * K
+    >>> Pc = 3796 * kPa
     >>> methane = Fluid(Tc, Pc, omega)
     >>> vols = methane.V_pr(T, P)
     >>> print(vols)
-    {'vapor': 0.0023131229712340944 * m**3 * mol**-1, 'liquid': 0.00011402510635426865 * m**3 * mol**-1}
+    {'vapor': 0.0023131229712340944 * m**3 / mol, 'liquid': 0.00011402510635426865 * m**3 / mol}
     """
     def __init__(self, Tc, Pc, omega):
         self.Tc = Tc        # Critical Temperature
