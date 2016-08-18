@@ -4,13 +4,133 @@ from math import isclose, exp, log, cos, sin
 from .counter import Counter
 
 
+class _Quantities(dict):
+    def __setitem__(self, key, value):
+        if key in self:
+            value = self[key] + "/" + value
+            del self[key]
+        super().__setitem__(key, value)
+
+
 class UnitsGroup:
     """The meat of unties. See the README for examples.
     """
-    def __init__(self, name='', **dictionary):
+    _quantities = _Quantities()  # Store unit quantities (length, time, etc.)
+    _prefixes = {}  # Store all unit prefixes
+
+    @classmethod
+    def add_prefixes(cls, prefix_dict):
+        """Add prefixes that will be applied to prefixed units.
+
+        Prefixes do not apply retroactively, that is, they only apply to
+        prefixed units created after the prefixes are added.
+
+        Example:
+            >>> UnitsGroup.add_prefixes({'ty': [10**-100, teeny]})
+        """
+        cls._prefixes.update(prefix_dict)
+
+    @classmethod
+    def base(cls, name, description, prefix=True):
+        """Create a base unit (m, kg, s, etc).
+
+        Be sure you want a base unit, and not a combination of other units
+        (using `derived`) or a conversion from an existing unit (using
+        `conversion`). Given m and kg as base units, density (kg/m**3) is a
+        `derived` unit, and cm is a converted unit (100 * cm == m).
+
+        It's usually best to use this instead of initiating a new base with the
+        `__init__` method. This adds your base to the `units_dict`, and can add
+        prefixes to your base
+
+        Example:
+            >>> shu = UnitsGroup.base('shu', 'Scoville heat unit')
+            >>> shu
+            1.0 * shu  # Scoville heat unit
+        """
+        units_group = cls(name, description)
+        units_group._save_unit(name)
+        if prefix:
+            units_group._prefixer()
+        return units_group
+
+    def derived(self, name, description, prefix=True, _manual_quantity=''):
+        """Create a derived unit (m/s, kg/m**3, etc).
+
+        Example:
+            >>> bz = (m/s).derived('bz', 'benz', prefix=False)
+            >>> bz
+            1.0 * bz  # benz [speed/velocity]
+        """
+        units_group = self.rename(name, description)
+        units_group._manual_quantity = _manual_quantity
+        units_group._save_unit(name)
+        if prefix:
+            units_group._prefixer()
+        return units_group
+
+    def conversion(self, name, description, factor, prefix=False):
+        """Create a converted unit (ft, hour, millivolt, etc).
+
+        Example:
+            >>> hh = inch.conversion('hh', 'hand', 4)
+            >>> hh
+            1.0 * hh  # hand [length]
+            >>> hh(inch)
+            4.0 * inch
+        """
+        units_group = (self * factor).rename(name, description)
+        units_group._manual_quantity = self._manual_quantity
+        units_group._save_unit(name)
+        if prefix:
+            units_group._prefixer()
+        return units_group
+
+    def constant(self, name, description):
+        """Create a constant (c = speed of light, g = grav. const., etc).
+
+        Example:
+            >>> Rk = (h / q**2)(ohm).constant('Rk', 'von Klitzing constant')
+            >>> Rk
+            25812.807456116425 * ohm  # von Klitzing constant [electr...
+        """
+        self.description = description
+        self._locals[name] = self
+        return self
+
+    def add_quantity(self, quantity):
+        """Add a quantity to the table of defined quantities.
+
+        Since unit quantities are calculated on the fly, newly added quantites
+        will apply to previously created units.
+
+        Example:
+            >>> (m/s**3).add_quantity('jerk')
+            >>> (ft/hr**3).quantity()
+            'jerk'
+        """
+        self._quantities[str(self.units)] = quantity
+
+    def _save_unit(self, name):
+        self._locals[name] = self
+
+    def _prefixer(self):
+        """Add prefixes to a unit.
+        """
+        for prefix in self._prefixes:
+            prefixed_symbol = prefix + list(self.full_name)[0]
+            description = self._prefixes[prefix][1] + self.description.lower()
+            units_group = (self * self._prefixes[prefix][0])
+            units_group.rename(prefixed_symbol, description)
+            units_group._manual_quantity = self._manual_quantity
+            units_group._save_unit(prefixed_symbol)
+
+    def __init__(self, name='', description='', **dictionary):
         self.value = 1.0
         self.normal = 1.0
         self.units = Counter()
+        self.description = description
+        self._manual_quantity = ''
         if not self.units and name:
             self.units[name] = 1
         for key in list(dictionary):
@@ -121,28 +241,55 @@ class UnitsGroup:
         return first
 
     def __str__(self):
+        s = str(self.value_in_units())
         if self.full_name:
-            return str(self.value_in_units()) + str(self.full_name)
-        return str(self.value_in_units())
+            s += str(self.full_name)
+        if self.description:
+            s += '  # ' + self.description
+            if self.quantity():
+                s += ' [' + self.quantity() + ']'
+        return s
     __repr__ = __str__
 
     def value_in_units(self):
         return self.value * self.normal
 
-    # For numpy compatability
+    def quantity(self):
+        """Return the physical quantity measured by this units_group.
+
+        Example:
+            >>> (3 * hp / mmHg).quantity()
+            'volumetric flow'
+        """
+        units = str(self.units)
+        if self._manual_quantity:
+            return self._manual_quantity
+        elif units in self._quantities:
+            return self._quantities[units]
+
     def exp(self):
+        """For numpy compatability.
+        """
         return exp(self)
 
     def log(self):
+        """For numpy compatability.
+        """
         return log(self)
 
     def log10(self):
+        """For numpy compatability.
+        """
         return log(self, 10)
 
     def cos(self):
+        """For numpy compatability.
+        """
         return cos(self)
 
     def sin(self):
+        """For numpy compatability.
+        """
         return sin(self)
 
     def copy(self):
@@ -190,18 +337,20 @@ class UnitsGroup:
             self.full_name[name] = full_name[name]
         return self
 
-    def rename(self, name):
-        """Create a renamed copy of the units_group.
+    def rename(self, name='', description=''):
+        """Rename a units_group in-place.
 
         Useful for creating new units:
 
-            >>> hand = (4 * inch).rename('hand')
+            >>> hh = (4 * inch).rename('hh', 'hand')
+            >>> hh
+            1.0 * hh  # hand [length]
         """
-        first = self.copy()
-        first.full_name = Counter()
-        first.full_name[name] = 1
-        first.normal = self.value**-1
-        return first
+        self.description = description
+        self.full_name = Counter()
+        self.full_name[name] = 1
+        self.normal = self.value**-1
+        return self
 
     def _inplace_standardized(self):
         self.normal = 1

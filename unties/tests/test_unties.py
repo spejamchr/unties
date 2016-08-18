@@ -4,6 +4,7 @@ import numpy as np
 from unties import *
 from scipy.optimize import fsolve
 
+
 class TestUnties(TestCase):
 
     def assert_display_with_units_of(self, units_group, units):
@@ -21,8 +22,8 @@ class TestUnties(TestCase):
         scalar = m / m
         self.assertEqual(1 + scalar, 2)
 
-
-    # Test Subtraction
+    # Test Subtraction #
+    ####################
     def test_sub_commutative_law(self):
         self.assertEqual(3 * m - 1 * m, -(1 * m - 3 * m))
 
@@ -34,8 +35,8 @@ class TestUnties(TestCase):
         scalar = m / m
         self.assertEqual(1 - scalar, 0)
 
-
-    # Test multiplication
+    # Test multiplication #
+    #######################
     def test_m_times_m_equals_m_squared(self):
         self.assertEqual(m * m, m**2)
 
@@ -66,8 +67,8 @@ class TestUnties(TestCase):
         except:
             self.fail("(0 / K) * K raised an error unexpectedly!")
 
-
-    # Test Division
+    # Test Division #
+    #################
     def test_division_by_one_equals_self(self):
         self.assertEqual(inch, inch / 1)
 
@@ -92,16 +93,16 @@ class TestUnties(TestCase):
         except:
             self.fail("unit / np array raised an error unexpectedly!")
 
-
-    # Test Absolute Value
+    # Test Absolute Value #
+    #######################
     def test_absolute_value_leaves_positive_positive(self):
         self.assertEqual(abs(m), m)
 
     def test_absolute_value_makes_negatives_positive(self):
         self.assertEqual(abs(-m), m)
 
-
-    # Test comparators
+    # Test comparators #
+    ####################
     def test_one_meter_is_larger_than_one_foot(self):
         self.assertTrue(m > ft)
 
@@ -146,8 +147,8 @@ class TestUnties(TestCase):
     def test_inch_is_not_equal_to_4(self):
         self.assertNotEqual(inch, 4)
 
-
-    # Test Smart Conversion
+    # Test Smart Conversion #
+    #########################
     def test_ft_times_yd_is_yd_squared(self):
         self.assert_display_with_units_of(ft * yd, yd**2.0)
 
@@ -178,8 +179,8 @@ class TestUnties(TestCase):
     def test_cm_divided_by_gal_is_inverse_cm_squared(self):
         self.assert_display_with_units_of(cm / gal, 1 / cm**2.0)
 
-
-    # Test Conversion
+    # Test Conversion #
+    ###################
     def test_inch_equals_25_point_4_mm(self):
         self.assertEqual(inch, 25.4 * mm)
 
@@ -213,12 +214,12 @@ class TestUnties(TestCase):
         self.assertEqual(str((m / s)(km / minute)), '0.06 * km / minute')
         self.assertEqual(str((3 * m / m)(A)), '3.0')
         self.assertEqual(str((3 * ft / ft)(mmHg)), '3.0')
-        self.assertEqual(str((3 * ft / s)(inch)), '36.00000000000001 * inch / s')
+        self.assertEqual(str((3 * ft / s)(cm)), '91.44000000000001 * cm / s')
 
     def test_strange_conversions_hz_to_yr(self):
         self.assertEqual(eval(str(Hz(hr))), Hz)
 
-    def test_strange_conversions_kg_to_yr(self):
+    def test_strange_conversions_kg_to_hr(self):
         self.assertEqual(eval(str(kg(hr))), kg)
 
     def test_strange_conversions_acre_to_cm(self):
@@ -240,53 +241,91 @@ class TestUnties(TestCase):
         self.assertEqual(a, 2 * ft)
         self.assertEqual(b, 3 * m)
 
-
-    # Test value_in_units
+    # Test value_in_units #
+    #######################
     def test_value_in_units(self):
         self.assertEqual((2 * yr).value_in_units(), 2)
         self.assertEqual((12 * ltyr).value_in_units(), 12)
         self.assertEqual((62 * F).value_in_units(), 62)
-        self.assertEqual((62 * lb * ft * minute * deg / R).value_in_units(), 62)
 
-
-    # Test string conversions
+    # Test string conversions #
+    ###########################
     def test_to_string(self):
-        self.assertEqual(str(m), '1.0 * m')
+        self.assertEqual(str(1 * m), '1.0 * m')
         self.assertEqual(str(m * s * kg), '1.0 * kg * m * s')
         self.assertEqual(str(m**-1), '1.0 / m')
         self.assertEqual(str(1 / (s * kg * m)), '1.0 / (kg * m * s)')
         self.assertEqual(str(m / s), '1.0 * m / s')
-        self.assertEqual(str(m * A * K / (mol *s * kg)), '1.0 * A * K * m / (kg * mol * s)')
+        self.assertEqual(str(m * A * K / (mol * s * kg)),
+                         '1.0 * A * K * m / (kg * mol * s)')
         self.assertEqual(str(m**-1 * kg**-2 / A**-1), '1.0 * A / (kg**2 * m)')
 
+    def test_description_and_quantity_work(self):
+        for unit in [m, ft, ltyr, lb, mmol, mas, yr, latm, Btu, dyn, tonf]:
+            self.assertTrue(unit.description, 'no description: ' + str(unit))
+            self.assertTrue(unit.quantity(), 'no quantity: ' + str(unit))
 
-    # Test custom units
+    def test_single_unit_to_string(self):
+        self.assertEqual(str(m), '1.0 * m  # Meter [length]')
+        self.assertEqual(str(nmi), '1.0 * nmi  # Nautical Mile [length]')
+        self.assertEqual(str(galUK), '1.0 * galUK  # British gallon [volume]')
+        self.assertEqual(str(yr), '1.0 * yr  # Year [time]')
+
+    def test_constant_to_string(self):
+        self.assertIn('# Gas constant [', str(Rc))
+        self.assertIn('# Speed of light [', str(c))
+        self.assertIn('# Acceleration of gravity [', str(g))
+        self.assertIn('# Gravitational constant', str(Gc))
+        self.assertIn('# Planck\'s constant [', str(h))
+        self.assertIn('# Electron rest mass [', str(Me))
+        self.assertIn('# Neutron rest mass [', str(Mn))
+        self.assertIn('# Proton rest mass [', str(Mp))
+        self.assertIn('# Avogadro constant', str(Na))
+        self.assertIn('# Electron charge [', str(q))
+        self.assertIn('# Coulomb\'s constant', str(Cc))
+        self.assertIn('# Reduced Planck\'s constant [', str(hbar))
+        self.assertIn('# Vacuum permeability [', str(u0))
+        self.assertIn('# Vacuum permittivity [', str(e0))
+        self.assertIn('# Boltzmann\'s constant [', str(kb))
+        self.assertIn('# Stefan-Boltzmann constant', str(sbc))
+        self.assertIn('# Bohr magneton [', str(ub))
+        self.assertIn('# Bohr radius [', str(Rb))
+        self.assertIn('# Rydberg Constant [', str(Rdb))
+        self.assertIn('# Magnetic flux quantum [', str(mfq))
+
+    def test_quantity_applies_to_new_unit(self):
+        hd = (4 * inch).rename('hd', 'hand')
+        self.assertEqual(hd.quantity(), inch.quantity())
+
+    # Test custom units #
+    #####################
     def test_custom_unit_equals_itself(self):
         self.assertEqual(UnitsGroup('b'), UnitsGroup('b'))
 
     def test_different_custom_units_are_not_equal(self):
         self.assertNotEqual(UnitsGroup('b'), UnitsGroup('bb'))
 
-
-    # Test Copy
+    # Test Copy #
+    #############
     def copy_does_not_change_unit(self):
         a = m
         b = a.copy()
         self.assertEqual(a, b)
 
-
-    # Test Join
+    # Test Join #
+    #############
     def join_does_not_change_unit(self):
         a = m.copy()
         b = m.copy()
         a.join(ft / mol)
         self.assertEqual(a, b)
 
-
-    # Test fsolve
+    # Test fsolve #
+    ###############
     def test_solve_np_array_with_other_order(self):
         def other(x):
             return x + 2.0 * mm
+
         def solve(x):
             return (ft * x - m + other(ft * x)).value
         try:
@@ -297,6 +336,7 @@ class TestUnties(TestCase):
     def test_solve_np_array_with_mixed_method_should_fail(self):
         def other(x):
             return x + 2.0 * mm
+
         def solve(x):
             return (ft * x - m + other(x * ft)).value
         try:
@@ -308,6 +348,7 @@ class TestUnties(TestCase):
     def test_my_fsolve(self):
         def other(x):
             return x + 2.0 * mm
+
         def solve(x):
             return x - m + other(x)
         try:
@@ -315,8 +356,8 @@ class TestUnties(TestCase):
         except:
             self.fail("fsolve with units failed unexpectedly!")
 
-
-    # Test unitless stuff
+    # Test unitless stuff #
+    #######################
     def test_unitless(self):
         def spring_force(x, k):
             return x * k
@@ -327,7 +368,8 @@ class TestUnties(TestCase):
 
         self.assertEqual(without_units, with_units.value_in_units())
 
-    # Test inplace methods
+    # Test inplace methods #
+    ########################
     def test_inplace_mul(self):
         a = cm.copy()
         a._inplace_mul(2)
