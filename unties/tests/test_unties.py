@@ -356,7 +356,7 @@ class TestUnties(TestCase):
         except:
             self.fail("fsolve with units failed unexpectedly!")
 
-    # Test unitless stuff #
+    # Test unitless helper #
     #######################
     def test_unitless(self):
         def spring_force(x, k):
@@ -367,6 +367,19 @@ class TestUnties(TestCase):
         without_units = unitless_spring_force(3, 2)
 
         self.assertEqual(without_units, with_units.magnitude)
+
+    # Test unitified helper #
+    ##########################
+    def test_with_units_helper(self):
+        def emc_without_units(m):
+            return m * 2.99792458**2 * 10
+
+        without_units = emc_without_units(3)
+        emc_with_units = unitified(MJ, ug)(emc_without_units)
+        with_units = emc_with_units(3 * ug)
+
+        self.assertEqual(round(without_units, 12),
+                         round(with_units.magnitude, 12))
 
     # Test inplace methods #
     ########################
