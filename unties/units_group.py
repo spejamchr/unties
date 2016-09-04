@@ -2,6 +2,7 @@
 """
 from math import isclose, exp, log, cos, sin
 from .counter import Counter
+from .errors import *
 
 
 class _Quantities(dict):
@@ -211,7 +212,7 @@ class UnitsGroup:
     def __float__(self):
         if self.units:
             string = 'Must be unitless: ' + str(self.standardized())
-            raise Exception(string)
+            raise TypeError(string)
         return self.value
 
     def __eq__(self, other):
@@ -399,10 +400,7 @@ class UnitsGroup:
         """Checks that two units_groups have the same units
         """
         if not self.units == units_group.units:
-            raise Exception('Incompatible units: ',
-                            self.units,
-                            ' and ',
-                            units_group.units)
+            raise IncompatibleUnitsError(self, units_group)
 
     def _inplace_units_of(self, units_group):
         self._inplace_standardized()

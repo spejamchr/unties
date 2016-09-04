@@ -2,6 +2,23 @@
 """
 
 
+def _deep_map(func, *args):
+    """Like map, but recursively enters iterables
+
+    Ex:
+
+        >>> _deep_map(lambda a, b: a + b,
+                      (1, 2, (3, (4,), 5)),
+                      (10, 20, (30, (40,), 50)))
+        [11, 22, [33, [44], 55]]
+
+    """
+    try:
+        return [_deep_map(func, *z) for z in zip(*args)]
+    except TypeError:
+        return func(*args)
+
+
 def unitless(ret_units, arg_units):
     """Wrap a function that takes and returns units as arguments
 
@@ -22,9 +39,9 @@ def unitless(ret_units, arg_units):
 
     def wrap_function(func):
         def new_function(*unitless_args):
-            zipped = zip(arg_units, unitless_args)
-            new_args = [unit * arg for unit, arg in zipped]
-            return func(*new_args)(ret_units).magnitude
+            new_args = _deep_map(lambda u, n: u * n, arg_units, unitless_args)
+            returned = func(*new_args)
+            return _deep_map(lambda o, n: o(n).magnitude, returned, ret_units)
         return new_function
     return wrap_function
 
@@ -49,11 +66,14 @@ def unitified(ret_units, arg_units):
 
     def wrap_function(func):
         def new_function(*unitified_args):
-            for unit, arg in zip(arg_units, unitified_args):
-                arg.must_have_same_units_as(unit)
-            zipped = zip(arg_units, unitified_args)
-            unitless_args = [arg(unit).magnitude for unit, arg in zipped]
-            return func(*unitless_args) * ret_units
+            _deep_map(lambda u, a: a.must_have_same_units_as(u),
+                      arg_units, unitified_args)
+
+            unitless_args = _deep_map(lambda u, a: a(u).magnitude,
+                                      arg_units, unitified_args)
+
+            return _deep_map(lambda r, u: r * u,
+                             func(*unitless_args), ret_units)
         return new_function
     return wrap_function
 

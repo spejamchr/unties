@@ -3,6 +3,23 @@ import math
 import numpy as np
 from unties import *
 from scipy.optimize import fsolve
+from unties.errors import *
+
+def _deep_map(func, *args):
+    """Like map, but recursively enters iterables
+
+    Ex:
+
+        >>> _deep_map(lambda a, b: a + b,
+                      (1, 2, (3, (4,), 5)),
+                      (10, 20, (30, (40,), 50)))
+        [11, 22, [33, [44], 55]]
+
+    """
+    try:
+        return [_deep_map(func, *z) for z in zip(*args)]
+    except TypeError:
+        return func(*args)
 
 
 class TestUnties(TestCase):
@@ -339,11 +356,8 @@ class TestUnties(TestCase):
 
         def solve(x):
             return (ft * x - m + other(x * ft)).value
-        try:
-            fsolve(solve, 3)
-            self.fail("fsolve should have failed!")
-        except:
-            pass
+
+        self.assertRaises(IncompatibleUnitsError, fsolve, solve, 3)
 
     def test_my_fsolve(self):
         def other(x):
@@ -368,6 +382,21 @@ class TestUnties(TestCase):
 
         self.assertEqual(without_units, with_units.magnitude)
 
+    def test_unitless_can_handle_strange_args_and_returns(self):
+        def func(x, array):
+            a = x * array[1]
+            b = array[0] + array[1]
+            c = (a * b).standardized()
+            return ((b, c), a)
+
+        with_units = func(3 * s, [2 * N/m, 3 * lbf/ft])
+        unitless_func = unitless(((N/m, kg**2/s**3), lbf*s/ft),
+                                 (s, (N/m, lbf/ft)))(func)
+        without_units = unitless_func(3, (2, 3))
+
+        self.assertEqual(without_units, _deep_map(lambda u: u.magnitude,
+                                                  with_units))
+
     # Test unitified helper #
     ##########################
     def test_with_units_helper(self):
@@ -380,6 +409,27 @@ class TestUnties(TestCase):
 
         self.assertEqual(round(without_units, 12),
                          round(with_units.magnitude, 12))
+
+    def test_with_units_requires_compatible_units(self):
+        def emc_without_units(m):
+            return m * 2.99792458**2 * 10
+
+        emc_with_units = unitified(MJ, ug)(emc_without_units)
+        self.assertRaises(IncompatibleUnitsError, emc_with_units, 8 * s)
+
+    def test_unitified_can_handle_strange_args_and_returns(self):
+        def func(length, time_and_energy):
+            time, energy = time_and_energy
+            speed = length / time
+            power = energy / time
+            energy_density = energy / length**3
+            return [[power, energy_density], speed]
+
+        without_units = func(2, (4, 3))
+        func_with_units = unitified(((W, J/m**3), m/s), (m, (s, J)))(func)
+        with_units = func_with_units(2 * m, (4 * s, 3 * J))
+        self.assertEqual(without_units, _deep_map(lambda u: u.magnitude,
+                                                  with_units))
 
     # Test inplace methods #
     ########################
