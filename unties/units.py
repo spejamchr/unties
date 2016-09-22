@@ -127,7 +127,7 @@ kg.conversion('tonUK', 'Long ton', 1016.047)
 
 # Conversions for N:
 N.conversion('dyn', 'Dyne', 10**-5)
-N.conversion('kgf', 'Kilogram force', 80665)
+N.conversion('kgf', 'Kilogram force', 9.80665)
 N.conversion('lbf', 'Pound force', 4.44822161526)
 N.conversion('tonf', 'Ton force', 8896.44323052)
 
