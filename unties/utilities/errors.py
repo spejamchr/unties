@@ -12,3 +12,15 @@ class IncompatibleUnitsError(Error):
 
     def __str__(self):
         return repr(self.units1) + ' and ' + repr(self.units2)
+
+class OutOfRangeError(Error):
+    """Exception raised when a value is outside an allowed range
+    """
+    def __init__(self, arg, mi, ma):
+        self.arg = arg
+        self.mi = mi
+        self.ma = ma
+
+    def __str__(self):
+        arg, mi, ma = str(self.arg), str(self.mi), str(self.ma)
+        return arg + ' is out of range: [' + mi + ', ' + ma + ']'

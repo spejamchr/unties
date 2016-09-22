@@ -90,7 +90,7 @@ Available Temperature-Dependant Functions:
 # Imports ######################################################################
 from scipy.interpolate import UnivariateSpline
 from math import exp, log, sinh, cosh
-from .utilities import OutOfRangeTest, function_strings
+from unties.utilities.utilities import OutOfRangeTest, function_strings
 from unties import *
 
 

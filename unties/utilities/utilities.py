@@ -1,3 +1,5 @@
+import unties.utilities.errors as ue
+
 class OutOfRangeTest:
     """Test if a value is outside a given range. If it is, raise an exception.
     """
@@ -11,17 +13,11 @@ class OutOfRangeTest:
 
     def __test(self):
         if self.__arg < self.__mi or self.__arg > self.__ma:
+            error = ue.OutOfRangeError(self.__arg, self.__mi, self.__ma)
             if self.__throw_error:
-                raise self.__out_of_range_exception()
+                raise error
             else:
-                print(self.__exception_string())
-
-    def __out_of_range_exception(self):
-        return Exception(self.__exception_string())
-
-    def __exception_string(self):
-        arg, mi, ma = str(self.__arg), str(self.__mi), str(self.__ma)
-        return arg + ' is out of range: [' + mi + ', ' + ma + ']'
+                print(error)
 
 def function_strings(functions):
     string = ''

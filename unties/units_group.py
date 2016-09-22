@@ -2,7 +2,7 @@
 """
 from math import isclose, exp, log, cos, sin
 from .counter import Counter
-from .errors import *
+import unties.utilities.errors as ue
 
 
 class _Quantities(dict):
@@ -400,7 +400,7 @@ class UnitsGroup:
         """Checks that two units_groups have the same units
         """
         if not self.units == units_group.units:
-            raise IncompatibleUnitsError(self, units_group)
+            raise ue.IncompatibleUnitsError(self, units_group)
 
     def _inplace_units_of(self, units_group):
         self._inplace_standardized()
