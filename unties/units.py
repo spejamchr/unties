@@ -136,6 +136,7 @@ J.conversion('Btu', 'British thermal unit', 1055.05585262)
 # The are multiple definitions for the calorie. This is the current standard.
 J.conversion('cal', 'Gram calorie', 4.184)
 J.conversion('Cal', 'Kilogram calorie', 4184)
+J.conversion('kcal', 'Kilogram calorie', 4184)
 J.conversion('erg', 'Erg', 10**-7)
 J.conversion('eV', 'Electron volt', 1.60217733*10**-19)
 J.conversion('ftlb', 'Foot-pound', 1.35581794833)
