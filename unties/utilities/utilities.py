@@ -1,5 +1,6 @@
 import unties.utilities.errors as ue
 
+
 class OutOfRangeTest:
     """Test if a value is outside a given range. If it is, raise an exception.
     """
@@ -18,6 +19,7 @@ class OutOfRangeTest:
                 raise error
             else:
                 print(error)
+
 
 def function_strings(functions):
     string = ''

@@ -106,7 +106,7 @@ Available Temperature-Dependant Functions:
 from unties import *
 from math import exp, log, sinh, cosh
 from scipy.optimize import fsolve
-from .utilities import OutOfRangeTest, function_strings
+from unties.utilities.utilities import OutOfRangeTest, function_strings
 
 
 # DIPPR's Constants Without Units ##############################################

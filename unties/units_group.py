@@ -1,7 +1,7 @@
 """See the README for examples of how to use this module.
 """
 from math import isclose, exp, log, cos, sin
-from .counter import Counter
+from unties.counter import Counter
 import unties.utilities.errors as ue
 
 

@@ -1,6 +1,6 @@
 """Define all units and constants
 """
-from .units_group import UnitsGroup
+from unties.units_group import UnitsGroup
 
 UnitsGroup._locals = globals()
 

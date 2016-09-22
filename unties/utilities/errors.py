@@ -13,6 +13,7 @@ class IncompatibleUnitsError(Error):
     def __str__(self):
         return repr(self.units1) + ' and ' + repr(self.units2)
 
+
 class OutOfRangeError(Error):
     """Exception raised when a value is outside an allowed range
     """

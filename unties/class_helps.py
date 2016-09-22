@@ -1,4 +1,4 @@
-from .units import *
+from unties import *
 from scipy.optimize import fsolve
 from scipy.interpolate import UnivariateSpline
 import numpy as np
