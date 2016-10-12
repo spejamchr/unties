@@ -74,6 +74,12 @@ class TestUnties(TestCase):
         except:
             self.fail("unit * np array raised an error unexpectedly!")
 
+    def test_np_mult_is_commutative(self):
+        linspace = np.linspace(1, 2)
+        a = linspace * _.ft
+        b = _.ft * linspace
+        self.assertTrue(np.all(a == b))
+
     def test_mult_by_zero_to_get_zero(self):
         try:
             _.K * (0 / _.K)
@@ -351,20 +357,22 @@ class TestUnties(TestCase):
             return x + 2.0 * _.mm
 
         def solve(x):
-            return (_.ft * x - _.m + other(_.ft * x)).value
+            return [x.value for x in _.ft * x - _.m + other(_.ft * x)]
         try:
             fsolve(solve, 3)
         except:
             self.fail("fsolve with units failed unexpectedly!")
 
-    def test_solve_np_array_with_mixed_method_should_fail(self):
+    def test_solve_np_array_with_mixed_order_should_work(self):
         def other(x):
             return x + 2.0 * _.mm
 
         def solve(x):
-            return (_.ft * x - _.m + other(x * _.ft)).value
-
-        self.assertRaises(ue.IncompatibleUnitsError, fsolve, solve, 3)
+            return [x.value for x in _.ft * x - _.m + other(x * _.ft)]
+        try:
+            fsolve(solve, 3)
+        except:
+            self.fail("fsolve with units failed unexpectedly!")
 
     def test_my_fsolve(self):
         def other(x):
@@ -405,6 +413,17 @@ class TestUnties(TestCase):
         self.assertEqual(without_units, _deep_map(lambda u: u.magnitude,
                                                   with_units))
 
+    def test_unitless_can_handle_numpy_arrays(self):
+        def spring_force(x):
+            k = 2 * _.N/_.m
+            return x * k
+
+        unitless_func = _.unitless(_.N, _.ft)(spring_force)
+        try:
+            unitless_func(np.linspace(1, 2, 4))
+        except:
+            self.fail("unitless with np array failed unexpectedly!")
+
     # Test unitified helper #
     ##########################
     def test_with_units_helper(self):
@@ -424,6 +443,16 @@ class TestUnties(TestCase):
 
         emc_with_units = _.unitified(_.MJ, _.ug)(emc_without_units)
         self.assertRaises(ue.IncompatibleUnitsError, emc_with_units, 8 * _.s)
+
+    def test_unitified_can_handle_numpy_arrays(self):
+        def some_function(x):
+            return 311 / x**2
+
+        unitified_func = _.unitified(_.Pa, _.ft)(some_function)
+        try:
+            unitified_func(np.linspace(1, 2, 4))
+        except:
+            self.fail("unitified with np array failed unexpectedly!")
 
     def test_unitified_can_handle_strange_args_and_returns(self):
         def func(length, time_and_energy):

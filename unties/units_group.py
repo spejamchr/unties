@@ -170,8 +170,12 @@ class UnitsGroup:
         return self._inplace_join(sec)
 
     def __mul__(self, sec):
+        if not isinstance(sec, UnitsGroup):
+            return sec * self
+        return self.__rmul__(sec)
+
+    def __rmul__(self, sec):
         return self.copy()._inplace_mul(sec)
-    __rmul__ = __mul__
 
     def __pow__(self, num):
         if isinstance(num, UnitsGroup) and num.is_scalar():

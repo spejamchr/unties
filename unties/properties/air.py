@@ -24,7 +24,7 @@ identifies its units.
 ## Functions
 
 The functions are functions of temperature (in Kelvin), and each one has a range
-of usability. If a functioni is called with a temperature outside this range, an
+of usability. If a function is called with a temperature outside this range, an
 error will be raised.
 
     >>> Pv = air._ideal_gas_heat_capacity(1511)
@@ -246,7 +246,7 @@ def _ro_one_atm(_T, ranged=True):
            0.4097, 0.3868, 0.3666, 0.3482, 0.3166,
            0.2902, 0.2679, 0.2488, 0.2322, 0.2177,
            0.2049, 0.1935, 0.1833, 0.1741, 0.1658,
-           0.1582, 0.1513, 0.1488, 0.1389, 0.1135 ]
+           0.1582, 0.1513, 0.1488, 0.1389, 0.1135]
     return float(UnivariateSpline(Ts, ros, s=0).__call__(_T)) / _MW
 
 

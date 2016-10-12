@@ -1,5 +1,6 @@
 """Define some helper methods for dealing with units.
 """
+import numpy as np
 
 
 def _deep_map(func, *args):
@@ -39,9 +40,15 @@ def unitless(ret_units, arg_units):
 
     def wrap_function(func):
         def new_function(*unitless_args):
+            def get_magnitudes(o, n):
+                if type(o).__module__ == 'numpy':
+                    return [oo(n).magnitude for oo in o]
+                else:
+                    return o(n).magnitude
+
             new_args = _deep_map(lambda u, n: u * n, arg_units, unitless_args)
             returned = func(*new_args)
-            return _deep_map(lambda o, n: o(n).magnitude, returned, ret_units)
+            return _deep_map(get_magnitudes, returned, ret_units)
         return new_function
     return wrap_function
 
@@ -66,14 +73,28 @@ def unitified(ret_units, arg_units):
 
     def wrap_function(func):
         def new_function(*unitified_args):
-            _deep_map(lambda u, a: a.must_have_same_units_as(u),
-                      arg_units, unitified_args)
+            def same_unit_test(u, a):
+                if type(a).__module__ == 'numpy':
+                    return [aa.must_have_same_units_as(u) for aa in a]
+                else:
+                    return a.must_have_same_units_as(u)
 
-            unitless_args = _deep_map(lambda u, a: a(u).magnitude,
-                                      arg_units, unitified_args)
+            _deep_map(same_unit_test, arg_units, unitified_args)
 
-            return _deep_map(lambda r, u: r * u,
-                             func(*unitless_args), ret_units)
+            def get_magnitudes(o, n):
+                if type(n).__module__ == 'numpy':
+                    return [o(nn).magnitude for nn in n]
+                else:
+                    return o(n).magnitude
+
+            unitless_args = _deep_map(get_magnitudes, arg_units, unitified_args)
+
+            import numpy as np
+            print(func(*np.array(unitless_args)))
+            print(unitless_args)
+            print(ret_units)
+            # return _deep_map(lambda r, u: r * u,
+            #                  func(*unitless_args), ret_units)
         return new_function
     return wrap_function
 
