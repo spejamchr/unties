@@ -286,13 +286,13 @@ class TestUnties(TestCase):
         self.assertEqual(str(_.m * _.A * _.K / (_.mol * _.s * _.kg)),
                          '1.0 * A * K * m / (kg * mol * s)')
         self.assertEqual(str(_.m**-1 * _.kg**-2 / _.A**-1),
-                         '1.0 * A / (kg**2 * m)')
+                         '1.0 * A / (kg**2.0 * m)')
 
     def test_description_and_quantity_work(self):
         for unit in [_.m, _.ft, _.ltyr, _.lb, _.mmol, _.mas, _.yr, _.latm,
                      _.Btu, _.dyn, _.tonf]:
             self.assertTrue(unit.description, 'no description: ' + str(unit))
-            self.assertTrue(unit.quantity(), 'no quantity: ' + str(unit))
+            self.assertTrue(unit.quantity, 'no quantity: ' + str(unit))
 
     def test_single_unit_to_string(self):
         self.assertEqual(str(_.m), '1.0 * m  # Meter [length]')
@@ -325,7 +325,7 @@ class TestUnties(TestCase):
 
     def test_quantity_applies_to_new_unit(self):
         hd = (4 * _.inch).rename('hd', 'hand')
-        self.assertEqual(hd.quantity(), _.inch.quantity())
+        self.assertEqual(hd.quantity, _.inch.quantity)
 
     # Test custom units #
     #####################
@@ -427,8 +427,8 @@ class TestUnties(TestCase):
     # Test unitified helper #
     ##########################
     def test_with_units_helper(self):
-        def emc_without_units(m):
-            return m * 2.99792458**2 * 10
+        def emc_without_units(mass):
+            return mass * 2.99792458**2 * 10
 
         without_units = emc_without_units(3)
         emc_with_units = _.unitified(_.MJ, _.ug)(emc_without_units)
@@ -450,7 +450,7 @@ class TestUnties(TestCase):
 
         unitified_func = _.unitified(_.Pa, _.ft)(some_function)
         try:
-            unitified_func(np.linspace(1, 2, 4))
+            unitified_func(np.linspace(1, 2, 4) * _.ft)
         except:
             self.fail("unitified with np array failed unexpectedly!")
 
@@ -486,7 +486,7 @@ class TestUnties(TestCase):
     def test_inplace_standardized(self):
         a = _.Btu.copy()
         a._inplace_standardized()
-        self.assertEqual(str(a), '1055.05585262 * kg * m**2 / s**2')
+        self.assertEqual(str(a), '1055.05585262 * kg * m**2.0 / s**2.0')
 
     def test_inplace_normalized(self):
         a = 212 * _.Btu

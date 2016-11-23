@@ -107,7 +107,7 @@ class UnitsGroup:
 
         Example:
             >>> (m/s**3).add_quantity('jerk')
-            >>> (ft/hr**3).quantity()
+            >>> (ft/hr**3).quantity
             'jerk'
         """
         self._quantities[str(self.units)] = quantity
@@ -252,8 +252,8 @@ class UnitsGroup:
             s += str(self.full_name)
         if self.description:
             s += '  # ' + self.description
-            if self.quantity():
-                s += ' [' + self.quantity() + ']'
+            if self.quantity:
+                s += ' [' + self.quantity + ']'
         return s
     __repr__ = __str__
 
@@ -261,11 +261,12 @@ class UnitsGroup:
     def value(self):
         return self.magnitude / self.normal
 
+    @property
     def quantity(self):
         """Return the physical quantity measured by this units_group.
 
         Example:
-            >>> (3 * hp / mmHg).quantity()
+            >>> (3 * hp / mmHg).quantity
             'volumetric flow'
         """
         units = str(self.units)
@@ -372,7 +373,7 @@ class UnitsGroup:
         Example:
 
             >>> Btu.standardized()
-            1055.05585262 * kg * m**2 / s**2
+            1055.05585262 * kg * m**2.0 / s**2.0
         """
         return self.copy()._inplace_standardized()
 

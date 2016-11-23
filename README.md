@@ -70,7 +70,7 @@ affecting the value:
 178.1073544430114 * cal / s
 
 >>> acre(ft)
-43559.99999999999 * ft**2
+43559.99999999999 * ft**2.0
 ```
 
 Multiple units should be grouped:
@@ -99,10 +99,10 @@ console, and the unit's name and quantity will be shown:
 ```
 
 If you've done some calculations and want to check what quantity your new unit
-group measures, use the `quantity()` method:
+group measures, use the `quantity` method:
 
 ```python
->>> (3 * hp / mmHg).quantity()
+>>> (3 * hp / mmHg).quantity
 'volumetric flow'
 ```
 

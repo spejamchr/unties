@@ -13,7 +13,7 @@ class Counter(dict):
         return 0
 
     def __setitem__(self, key, value):
-        super().__setitem__(key, value)
+        super().__setitem__(key, float(value))
         self.negatives.pop(key, None)
         self.positives.pop(key, None)
         if self[key] == 0:
