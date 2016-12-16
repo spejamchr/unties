@@ -132,7 +132,7 @@ class UnitsGroup:
         self.units = Counter()
         self.description = description
         self._manual_quantity = ''
-        if not self.units and name:
+        if name:
             self.units[name] = 1
         for key in list(dictionary):
             self.units[key] = dictionary[key]
